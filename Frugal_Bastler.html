@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="color-scheme" content="dark">
+<title>Frugal-Bastler</title>
+<style>
+  :root{
+    --bg:#0f1115; --bg2:#161a22; --bg3:#1e2430; --border:#2a3140;
+    --text:#e6e9ef; --muted:#8b93a7; --accent:#4ade80; --accent2:#38bdf8;
+    --warn:#fbbf24; --danger:#f87171; --save:#4ade80; --retoure:#a78bfa;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5;
+    padding:12px;
+    padding-left:max(12px, env(safe-area-inset-left));
+    padding-right:max(12px, env(safe-area-inset-right));
+    padding-bottom:max(24px, env(safe-area-inset-bottom));
+    max-width:760px; margin:0 auto; touch-action:manipulation;
+  }
+  @media(min-width:700px){ body{ padding:16px; } }
+  h1{font-size:1.3rem; margin-bottom:4px; letter-spacing:-.01em;}
+  h1 span{color:var(--accent);}
+  .sub{color:var(--muted); font-size:.85rem; margin-bottom:14px;}
+  .tabs{
+    display:flex; gap:6px; margin-bottom:14px;
+    position:sticky; top:0; z-index:10;
+    background:var(--bg); padding:8px 0;
+    margin-left:-12px; margin-right:-12px; padding-left:12px; padding-right:12px;
+  }
+  @media(min-width:700px){ .tabs{ margin-left:0; margin-right:0; padding-left:0; padding-right:0; } }
+  .tab{
+    flex:1; background:var(--bg2); border:1px solid var(--border); color:var(--muted);
+    padding:10px 6px; border-radius:10px; cursor:pointer; font-size:.8rem;
+    transition:.15s; min-height:44px; font-weight:500; text-align:center;
+  }
+  .tab:hover{color:var(--text);}
+  .tab.active{background:var(--accent); color:#0f1115; border-color:var(--accent); font-weight:600;}
+  .panel{display:none;} .panel.active{display:block;}
+  .card{
+    background:var(--bg2); border:1px solid var(--border); border-radius:14px;
+    padding:14px; margin-bottom:12px;
+  }
+  @media(min-width:700px){ .card{ padding:16px; } }
+  .card h2{font-size:1rem; margin-bottom:12px; color:var(--accent2); font-weight:600;}
+  label{display:block; font-size:.78rem; color:var(--muted); margin-bottom:5px; margin-top:10px; font-weight:500;}
+  label:first-of-type{margin-top:0;}
+  .opt{font-weight:400; color:#6b7280;}
+  input,select{
+    width:100%; background:var(--bg3); border:1px solid var(--border);
+    color:var(--text); padding:12px 14px; border-radius:10px;
+    font-size:16px; font-family:inherit; min-height:44px; transition:border-color .15s;
+  }
+  input:focus,select:focus{outline:none; border-color:var(--accent);}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;}
+  .row>div{flex:1; min-width:120px;}
+  @media(max-width:480px){ .row{ gap:0; } .row>div{ flex:1 1 100%; min-width:0; } }
+  .field{margin-top:10px;}
+  .field:first-of-type{margin-top:0;}
+  .row .field{margin-top:0;}
+  .muted{color:var(--muted); font-size:.8rem;}
+  button{
+    background:var(--accent); color:#0f1115; border:none; padding:12px 18px;
+    border-radius:10px; cursor:pointer; font-weight:600; font-size:.95rem;
+    margin-top:10px; min-height:44px; font-family:inherit; transition:opacity .15s;
+  }
+  button:hover{opacity:.9;}
+  button:active{opacity:.75; transform:scale(.98);}
+  button.ghost{background:var(--bg3); color:var(--text); border:1px solid var(--border);}
+  button.danger{background:var(--danger); color:#fff;}
+  button.tiny{padding:8px 10px; font-size:.9rem; margin:0; min-height:40px; min-width:40px;}
+  button.chip{
+    background:var(--bg3); color:var(--muted); border:1px solid var(--border);
+    padding:8px 12px; font-size:.85rem; margin:0; font-weight:500;
+    min-height:38px; border-radius:20px;
+  }
+  button.chip:hover{color:var(--text);}
+  button.chip.active{background:var(--accent2); color:#0f1115; border-color:var(--accent2); font-weight:600;}
+  button.status-btn{
+    flex:1; min-width:0; padding:10px 6px; margin:0; font-size:.78rem;
+    background:var(--bg3); color:var(--muted); border:2px solid var(--border);
+    border-radius:12px; font-weight:500;
+  }
+  button.status-btn.active{background:var(--accent2); color:#0f1115; border-color:var(--accent2); font-weight:700;}
+  button.status-btn.active.projekt{background:#a78bfa; border-color:#a78bfa; color:#0f1115;}
+  button.status-btn.active.verkaufen{background:var(--warn); border-color:var(--warn); color:#0f1115;}
+  button.status-btn.active.verkauft{background:var(--accent); border-color:var(--accent); color:#0f1115;}
+  .status-row{display:flex; gap:6px; margin-top:6px;}
+  #f-save, #f-cancel, #i-save, #i-cancel{ width:100%; }
+  @media(min-width:600px){ #f-save, #f-cancel, #i-save, #i-cancel{ width:auto; } }
+
+  .summary{
+    background:linear-gradient(135deg,#1a2030,#141821);
+    border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px;
+  }
+  .summary h2{color:var(--accent2); font-size:1rem; margin-bottom:12px; font-weight:600;}
+  .summary .cols{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px;}
+  .stat{background:var(--bg3); border-radius:10px; padding:12px; border-left:3px solid var(--border);}
+  .stat.spend{border-left-color:var(--danger);}
+  .stat.income{border-left-color:var(--accent2);}
+  .stat.save{border-left-color:var(--save);}
+  .stat.retoure{border-left-color:var(--retoure);}
+  .stat.warn{border-left-color:var(--warn);}
+  .stat .lbl{font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-weight:600;}
+  .stat .val{font-size:1.15rem; font-weight:700; margin:4px 0;}
+  .stat .sub{font-size:.72rem; color:var(--muted); margin-bottom:2px;}
+  .balance{
+    margin-top:12px; padding-top:12px; border-top:1px solid var(--border);
+  }
+  .balance .lbl{color:var(--muted); font-size:.85rem; margin-bottom:6px;}
+  .balance .grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+  .balance .cell{text-align:center; padding:8px; background:var(--bg3); border-radius:8px;}
+  .balance .cell .h{font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-weight:600;}
+  .balance .cell .v{font-size:1rem; font-weight:700; margin-top:2px;}
+  .pos{color:var(--save);} .neg{color:var(--danger);} .warn{color:var(--warn);} .retoure-c{color:var(--retoure);}
+
+  .preview{
+    background:linear-gradient(135deg,#1c2230,#161a24);
+    border:1px dashed var(--accent2); border-radius:12px;
+    padding:14px; margin-top:14px;
+  }
+  .preview .title{font-size:.72rem; color:var(--accent2); text-transform:uppercase;
+    letter-spacing:.05em; margin-bottom:10px; font-weight:600;}
+  .preview .big{font-size:1.7rem; font-weight:700; color:var(--accent); line-height:1.15;}
+  .preview .big.warn{color:var(--warn);}
+  .preview .big.danger{color:var(--danger);}
+  .preview .big.muted{color:var(--muted); font-size:1.2rem; font-weight:600;}
+  .preview .subline{color:var(--muted); font-size:.85rem; margin-bottom:12px;}
+  .preview .line{display:flex; justify-content:space-between; padding:3px 0; font-size:.9rem; gap:10px;}
+  .preview .line span:first-child{color:var(--muted);}
+  .preview .line span:last-child{font-weight:600; text-align:right; color:var(--text);}
+  .preview .line.small{font-size:.82rem;}
+  .preview .line.neg span:last-child{color:var(--danger);}
+  .preview .line.pos span:last-child{color:var(--save);}
+  .preview .line.strong span:first-child{color:var(--text); font-weight:500;}
+  .preview hr{border:none; border-top:1px solid var(--border); margin:10px 0;}
+
+  .entry{
+    background:var(--bg3); border-radius:12px; padding:12px; margin-bottom:8px;
+    border-left:3px solid var(--border);
+  }
+  .entry.spend{border-left-color:var(--danger);}
+  .entry.income{border-left-color:var(--accent2);}
+  .entry.save{border-left-color:var(--save);}
+  .entry.retoure{border-left-color:var(--retoure);}
+  .entry.wunsch{border-left-color:#38bdf8;}
+  .entry.overdue{border-left-color:var(--danger); background:linear-gradient(90deg,#2a1a1a,var(--bg3) 40%);}
+  .entry.soon{border-left-color:var(--warn); background:linear-gradient(90deg,#2a241a,var(--bg3) 40%);}
+  .entry.done{opacity:.65;}
+  .entry .top{display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap;}
+  .entry .main{flex:1; min-width:0;}
+  .entry .name{font-weight:600; margin-bottom:4px; word-break:break-word;}
+  .entry .meta{font-size:.82rem; color:var(--muted); line-height:1.6;}
+  .entry .meta b{color:var(--text); font-weight:600;}
+  .entry .meta.neg{color:var(--danger);}
+  .entry .meta.pos{color:var(--save);}
+  .entry .meta.income{color:var(--accent2);}
+  .entry .meta.retoure{color:var(--retoure);}
+  .entry .meta.warn{color:var(--warn);}
+  .entry .actions{display:flex; gap:6px; flex-shrink:0; flex-wrap:wrap;}
+  .entry .quick-actions{
+    margin-top:10px; padding-top:10px; border-top:1px solid var(--border);
+    display:flex; gap:6px; flex-wrap:wrap;
+  }
+  .entry .quick-actions button{margin:0; padding:8px 12px; font-size:.82rem; min-height:40px;}
+  .badge{
+    display:inline-block; padding:2px 8px; border-radius:6px; font-size:.7rem;
+    font-weight:600; background:var(--bg2); border:1px solid var(--border); color:var(--muted);
+    vertical-align:middle; margin-left:6px;
+  }
+  .badge.spend{color:var(--danger); border-color:#5a2c2c;}
+  .badge.save{color:var(--save); border-color:#2c5a34;}
+  .badge.retoure{color:var(--retoure); border-color:#3a2c5a;}
+  .badge.wunsch{color:#7dd3fc; border-color:#1e4a5a;}
+  .badge.behalten{color:#8b93a7;}
+  .badge.projekt{color:#a78bfa; border-color:#3a2c5a;}
+  .badge.verkaufen{color:var(--warn); border-color:#5a4a1c;}
+  .badge.verkauft{color:var(--accent2); border-color:#1e4a5a;}
+  hr{border:none; border-top:1px solid var(--border); margin:12px 0;}
+  .empty{color:var(--muted); font-size:.85rem; text-align:center; padding:24px 0;}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+  .group-header{
+    font-size:.72rem; color:var(--muted); text-transform:uppercase;
+    letter-spacing:.05em; font-weight:600; margin:14px 0 6px;
+  }
+  .group-header:first-of-type{margin-top:0;}
+  .group-header.overdue{color:var(--danger);}
+  .group-header.soon{color:var(--warn);}
+
+  .toolbar{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;}
+  .toolbar button{flex:1; min-width:120px; margin:0;}
+
+  /* Inventar-Liste im Jahres-Tab */
+  .inv-row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:8px;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+    font-size:.85rem;
+  }
+  .inv-row .inv-name{
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    line-height:1.4; min-width:0;
+    margin:0; padding:0;
+  }
+  .inv-row .inv-name .badge{
+    margin:0; flex-shrink:0;
+    line-height:1; padding:2px 7px;
+    font-size:.68rem;
+    display:inline-flex; align-items:center;
+  }
+  .inv-row .inv-val{
+    font-weight:600; text-align:right; line-height:1.4;
+    white-space:nowrap;
+    margin:0; padding:0;
+    align-self:center;
+  }
+
+  @media print {
+    body{ background:#fff; color:#000; padding:0; max-width:none; }
+    h1, .sub, .tabs, button, .toolbar, .form-card, .preview { display:none !important; }
+    .panel{ display:none !important; }
+    .panel.active{ display:block !important; }
+    .card{ background:#fff; border:none; padding:0; margin:0 0 16px 0; }
+    .card h2{ color:#000; }
+    .summary{ background:#fff; border:1px solid #ccc; color:#000; page-break-inside:avoid; }
+    .stat{ background:#f5f5f5; border:1px solid #ddd; color:#000; }
+    .stat.spend, .stat.income, .stat.save, .stat.retoure, .stat.warn{ border-left-width:3px; }
+    .stat .lbl, .stat .sub, .balance .lbl, .balance .cell .h{ color:#666; }
+    .stat .val, .balance .cell .v{ color:#000; }
+    .balance .cell{ background:#f5f5f5; border:1px solid #ddd; color:#000; }
+    .pos, .neg, .warn, .retoure-c{ color:#000 !important; }
+    .entry{ background:#fff; border:1px solid #ccc; color:#000; page-break-inside:avoid; }
+    .entry .meta, .entry .meta b{ color:#333; }
+    .entry .name{ color:#000; }
+    .badge{ background:#f0f0f0; color:#555; border-color:#ccc; }
+    .print-header{ display:block !important; font-size:1.1rem; font-weight:700; margin-bottom:12px; color:#000; }
+    .group-header{ color:#666; }
+    .inv-row{ border-bottom:1px solid #ddd; color:#000; }
+  }
+  .print-header{ display:none; }
+</style>
+</head>
+<body>
+
+<h1>🧰 Frugal-<span>Bastler</span></h1>
+<p class="sub">Was kostet es dein Zukunfts-Ich?</p>
+
+<div class="tabs">
+  <button class="tab active" data-tab="entscheidungen">Entscheidungen</button>
+  <button class="tab" data-tab="inventar">Inventar</button>
+  <button class="tab" data-tab="jahre">Jahre</button>
+  <button class="tab" data-tab="einstellungen">Setup</button>
+</div>
+
+<!-- ============ ENTSCHEIDUNGEN ============ -->
+<div class="panel active" id="entscheidungen">
+
+  <div class="card form-card">
+    <h2 id="form-title">➕ Neue Entscheidung</h2>
+    <div class="row">
+      <div style="flex:2;">
+        <label>Was?</label>
+        <input type="text" id="f-name" placeholder="Gegenstand" autocomplete="off">
+      </div>
+      <div>
+        <label>Typ</label>
+        <select id="f-typ">
+          <option value="neukauf">Neukauf (Ausgabe)</option>
+          <option value="gebraucht">Gebraucht (Ausgabe)</option>
+          <option value="reparatur">Reparatur (Ausgabe)</option>
+          <option value="verzicht">Verzicht (Ersparnis)</option>
+          <option value="retoure">Retoure (Ersparnis)</option>
+          <option value="wunsch">Wunsch (Bedenkzeit)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label id="preis-label">Preis (€)</label>
+        <input type="number" id="f-preis" value="35" min="0" step="1" inputmode="decimal">
+      </div>
+      <div>
+        <label>Jahr</label>
+        <input type="number" id="f-jahr" min="2000" max="2100" step="1" inputmode="numeric">
+      </div>
+    </div>
+
+    <div class="field" id="vergleich-wrap">
+      <label id="vergleich-label">Vergleichspreis (€) <span class="opt">optional</span></label>
+      <input type="number" id="f-vergleich" value="" min="0" step="1" inputmode="decimal" placeholder="z.B. 143">
+    </div>
+
+    <div class="field" id="jahre-wrap">
+      <label id="jahre-label">Nutzungsdauer (Jahre)</label>
+      <input type="number" id="f-jahre" value="5" min="0" step="0.5" inputmode="decimal">
+      <div class="chips" id="nutzungsdauer-chips">
+        <button type="button" class="chip" data-j="1">1 J.</button>
+        <button type="button" class="chip" data-j="3">3 J.</button>
+        <button type="button" class="chip" data-j="5">5 J.</button>
+        <button type="button" class="chip" data-j="10">10 J.</button>
+        <button type="button" class="chip" data-j="20">20 J.</button>
+        <button type="button" class="chip" data-j="0">∞</button>
+      </div>
+    </div>
+
+    <div class="preview" id="preview"></div>
+
+    <button id="f-save">Hinzufügen</button>
+    <button class="ghost" id="f-cancel" style="display:none;">Abbrechen</button>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="card">
+    <h2>📋 Liste</h2>
+    <div id="list"></div>
+  </div>
+</div>
+
+<!-- ============ INVENTAR ============ -->
+<div class="panel" id="inventar">
+
+  <div class="card form-card">
+    <h2 id="i-form-title">➕ Neues Inventar-Item</h2>
+
+    <div class="field">
+      <label>Was?</label>
+      <input type="text" id="i-name" placeholder="Gegenstand" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Status</label>
+      <div class="status-row" id="i-status-row">
+        <button type="button" class="status-btn" data-status="behalten">📦 Behalten</button>
+        <button type="button" class="status-btn projekt" data-status="projekt">🔧 Projekt</button>
+        <button type="button" class="status-btn verkaufen active" data-status="verkaufen">💰 Verkaufen</button>
+        <button type="button" class="status-btn verkauft" data-status="verkauft">✅ Verkauft</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field" id="i-wert-wrap">
+        <label id="i-wert-label">Erwarteter Verkaufswert (€) <span class="opt">optional</span></label>
+        <input type="number" id="i-wert" value="" min="0" step="1" inputmode="decimal" placeholder="z.B. 750">
+      </div>
+      <div class="field">
+        <label>Jahr</label>
+        <input type="number" id="i-jahr" min="2000" max="2100" step="1" inputmode="numeric">
+      </div>
+    </div>
+
+    <div class="field" id="i-kaufpreis-wrap">
+      <label>Damaliger Kaufpreis (€) <span class="opt">optional</span></label>
+      <input type="number" id="i-kaufpreis" value="" min="0" step="1" inputmode="decimal" placeholder="z.B. 1200">
+    </div>
+    <div class="field" id="i-frist-wrap">
+      <label>Frist bis (Datum) <span class="opt">optional</span></label>
+      <input type="date" id="i-frist">
+      <div class="chips" id="i-frist-chips">
+        <button type="button" class="chip" data-d="30">30 T.</button>
+        <button type="button" class="chip" data-d="90">3 Mon.</button>
+        <button type="button" class="chip" data-d="180">6 Mon.</button>
+        <button type="button" class="chip" data-d="365">1 J.</button>
+        <button type="button" class="chip" data-d="0">löschen</button>
+      </div>
+    </div>
+
+    <div class="preview" id="i-preview"></div>
+
+    <button id="i-save">Hinzufügen</button>
+    <button class="ghost" id="i-cancel" style="display:none;">Abbrechen</button>
+  </div>
+
+  <div class="summary" id="i-summary"></div>
+
+  <div class="card">
+    <h2>📦 Liste</h2>
+    <div id="i-list"></div>
+  </div>
+</div>
+
+<!-- ============ JAHRE ============ -->
+<div class="panel" id="jahre">
+
+  <div class="chips" id="jahre-tab-chips" style="margin-bottom:12px;"></div>
+
+  <div class="toolbar">
+    <button class="ghost" onclick="window.print()">🖨️ Übersicht drucken</button>
+  </div>
+
+  <div class="print-header" id="jahre-print-header"></div>
+
+  <div class="summary" id="jahre-summary"></div>
+
+  <div class="card" id="jahre-inventar-card">
+    <h2>📦 Inventar-Stand</h2>
+    <div id="jahre-inventar"></div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Einträge</h2>
+    <div id="jahre-list"></div>
+  </div>
+</div>
+
+<!-- ============ EINSTELLUNGEN ============ -->
+<div class="panel" id="einstellungen">
+  <div class="card">
+    <h2>⚙️ Deine Werte</h2>
+    <div class="row">
+      <div>
+        <label>Netto-Stundenlohn (€)</label>
+        <input type="number" id="s-lohn" value="22" min="1" step="0.5" inputmode="decimal">
+      </div>
+      <div>
+        <label>Arbeitstag (h)</label>
+        <input type="number" id="s-tag" value="7" min="1" step="0.5" inputmode="decimal">
+      </div>
+      <div>
+        <label>Rendite p.a. (%)</label>
+        <input type="number" id="s-rendite" value="7" min="0" step="0.1" inputmode="decimal">
+      </div>
+    </div>
+    <hr>
+    <h2>💾 Daten</h2>
+    <button class="ghost" id="export">Export (JSON)</button>
+    <button class="ghost" id="import-btn">Import (JSON)</button>
+    <input type="file" id="import-file" accept=".json" style="display:none;">
+    <button class="danger" id="reset">Alles zurücksetzen</button>
+    <p class="muted" style="margin-top:10px;">Alles bleibt lokal im Browser.</p>
+  </div>
+</div>
+
+<script>
+/* ============ STATE ============ */
+const CURRENT_YEAR = new Date().getFullYear();
+const DEF = { lohn: 22, tag: 7, rendite: 7, entscheidungen: [], inventar: [] };
+let state = load();
+let editingId = null;
+let editingItemId = null;
+let currentItemStatus = 'verkaufen';
+let currentYear = 'all';
+
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem('frugal'));
+    if(!s) return {...DEF};
+    const { gans, ...rest } = s;
+    return {...DEF, ...rest, inventar: rest.inventar || []};
+  }catch(e){ return {...DEF}; }
+}
+function save(){ localStorage.setItem('frugal', JSON.stringify(state)); }
+
+/* ============ HELPERS ============ */
+const fmt = (n,d=2) => n.toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const eur = n => fmt(n,2) + ' €';
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const TYPEN = {
+  neukauf:   {label:'Neukauf',    klasse:'spend',   vergleichLabel:'Teurere Alternative (€)', hatJahre:true,  preisLabel:'Preis (€)'},
+  gebraucht: {label:'Gebraucht',  klasse:'spend',   vergleichLabel:'Neupreis (€)',            hatJahre:true,  preisLabel:'Preis (€)'},
+  reparatur: {label:'Reparatur',  klasse:'spend',   vergleichLabel:'Neupreis (€)',            hatJahre:true,  preisLabel:'Reparatur-Kosten (€)'},
+  verzicht:  {label:'Verzicht',   klasse:'save',    vergleichLabel:null,                       hatJahre:true,  preisLabel:'Hätte gekostet (€)'},
+  retoure:   {label:'Retoure',    klasse:'retoure', vergleichLabel:null,                       hatJahre:false, preisLabel:'Kaufpreis (€)'},
+  wunsch:    {label:'Wunsch',     klasse:'wunsch',  vergleichLabel:null,                       hatJahre:false, preisLabel:'Preis (€)'}
+};
+
+const ITEM_STATUS = {
+  behalten:  {label:'Behalten',  badge:'behalten'},
+  projekt:   {label:'Projekt',   badge:'projekt'},
+  verkaufen: {label:'Verkaufen', badge:'verkaufen'},
+  verkauft:  {label:'Verkauft',  badge:'verkauft'}
+};
+
+const HORIZONTE = [5, 10, 20];
+
+function zukunft(preis, jahre){ return preis * Math.pow(1 + state.rendite/100, jahre); }
+
+function tageBis(fristStr){
+  if(!fristStr) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const f = new Date(fristStr); f.setHours(0,0,0,0);
+  return Math.round((f - today) / (1000*60*60*24));
+}
+function fristLabel(fristStr){
+  const t = tageBis(fristStr);
+  if(t === null) return '';
+  if(t < -1) return `${Math.abs(t)} Tage überfällig`;
+  if(t === -1) return 'gestern fällig';
+  if(t === 0) return 'heute fällig';
+  if(t === 1) return 'morgen fällig';
+  if(t <= 60) return `in ${t} Tagen`;
+  return new Date(fristStr).toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'});
+}
+function wunschTage(preis){
+  if(preis < 50) return 3;
+  if(preis < 200) return 7;
+  if(preis < 1000) return 30;
+  return 90;
+}
+function wunschFrist(preis){
+  const d = new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + wunschTage(preis));
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const tag = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${tag}`;
+}
+function kaufFristLabel(fristStr){
+  const t = tageBis(fristStr);
+  if(t === null) return '';
+  const fDate = new Date(fristStr).toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'});
+  if(t < -1) return `Kauf seit ${Math.abs(t)} Tagen möglich (ab ${fDate})`;
+  if(t === -1) return `Kauf seit gestern möglich (ab ${fDate})`;
+  if(t === 0) return 'Kauf ab heute möglich';
+  if(t === 1) return 'Kauf ab morgen möglich';
+  if(t <= 60) return `Kauf frühestens ab ${fDate} · in ${t} Tagen`;
+  return `Kauf frühestens ab ${fDate}`;
+}
+
+function getAllYears(){
+  const years = new Set();
+  state.entscheidungen.forEach(e => years.add(+e.jahr || CURRENT_YEAR));
+  state.inventar.forEach(it => {
+    if(it.status === 'verkauft') years.add(+it.jahr || CURRENT_YEAR);
+  });
+  years.add(CURRENT_YEAR);
+  return [...years].sort((a,b)=>b-a);
+}
+
+/* ============ TABS ============ */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  };
+});
+
+/* ==================================================================
+   ENTSCHEIDUNGEN
+   ================================================================== */
+function updateFormLabels(){
+  const typ = document.getElementById('f-typ').value;
+  const t = TYPEN[typ];
+  document.getElementById('preis-label').textContent = t.preisLabel;
+  document.getElementById('jahre-wrap').style.display = t.hatJahre ? 'block' : 'none';
+  if(t.hatJahre){
+    document.getElementById('jahre-label').textContent =
+      typ === 'verzicht' ? 'Nutzungsdauer (hypothetisch)' : 'Nutzungsdauer (Jahre)';
+  }
+  const vw = document.getElementById('vergleich-wrap');
+  if(t.vergleichLabel){
+    vw.style.display = 'block';
+    document.getElementById('vergleich-label').innerHTML = t.vergleichLabel + ' <span class="opt">optional</span>';
+    document.getElementById('f-vergleich').placeholder =
+      typ === 'gebraucht' || typ === 'reparatur' ? 'z.B. 200' : 'z.B. 143';
+  } else {
+    vw.style.display = 'none';
+    document.getElementById('f-vergleich').value = '';
+  }
+}
+
+function syncJahreChips(){
+  const j = +document.getElementById('f-jahre').value;
+  document.querySelectorAll('#nutzungsdauer-chips .chip').forEach(c=>{
+    c.classList.toggle('active', +c.dataset.j === j);
+  });
+}
+
+document.querySelectorAll('#nutzungsdauer-chips .chip').forEach(c=>{
+  c.onclick = ()=>{
+    document.getElementById('f-jahre').value = c.dataset.j;
+    syncJahreChips(); renderPreview();
+  };
+});
+
+function resetForm(){
+  editingId = null;
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-preis').value = 35;
+  document.getElementById('f-jahr').value = CURRENT_YEAR;
+  document.getElementById('f-typ').value = 'neukauf';
+  document.getElementById('f-vergleich').value = '';
+  document.getElementById('f-jahre').value = 5;
+  document.getElementById('form-title').textContent = '➕ Neue Entscheidung';
+  document.getElementById('f-save').textContent = 'Hinzufügen';
+  document.getElementById('f-cancel').style.display = 'none';
+  updateFormLabels(); syncJahreChips(); renderPreview();
+}
+
+function startEdit(id){
+  const e = state.entscheidungen.find(x=>x.id===id);
+  if(!e) return;
+  editingId = id;
+  document.getElementById('f-name').value = e.name;
+  document.getElementById('f-preis').value = e.preis;
+  document.getElementById('f-jahr').value = e.jahr || CURRENT_YEAR;
+  document.getElementById('f-typ').value = e.typ;
+  document.getElementById('f-vergleich').value = e.vergleich || '';
+  document.getElementById('f-jahre').value = e.jahre || 5;
+  document.getElementById('form-title').textContent = '✏️ Bearbeiten';
+  document.getElementById('f-save').textContent = 'Aktualisieren';
+  document.getElementById('f-cancel').style.display = 'inline-block';
+  updateFormLabels(); syncJahreChips(); renderPreview();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('f-typ').addEventListener('change', ()=>{ updateFormLabels(); renderPreview(); });
+document.getElementById('f-cancel').onclick = resetForm;
+
+function renderPreview(){
+  const preis = +document.getElementById('f-preis').value || 0;
+  const jahre = +document.getElementById('f-jahre').value || 0;
+  const typ = document.getElementById('f-typ').value;
+  const vergleich = +document.getElementById('f-vergleich').value || 0;
+  const t = TYPEN[typ];
+
+  if(preis <= 0){
+    document.getElementById('preview').innerHTML =
+      '<div class="title">👁️ Vorschau</div><div class="muted">Preis eingeben…</div>';
+    return;
+  }
+
+  const h = preis / state.lohn;
+  const tage = h / state.tag;
+  const cls = h > 40 ? 'danger' : h > 15 ? 'warn' : '';
+  const proMonat = (t.hatJahre && jahre > 0) ? preis / (jahre * 12) : null;
+  const istSpend = t.klasse === 'spend';
+  const istRetoure = t.klasse === 'retoure';
+  const istWunsch = typ === 'wunsch';
+
+  const proMonatZeile = proMonat !== null
+    ? `<div class="line"><span>${istSpend ? 'Kosten pro Monat' : 'Gespart pro Monat'}</span><span>${fmt((proMonat/state.lohn)*60,1)} Min · ${eur(proMonat)}</span></div>` : '';
+
+  let ziBlock;
+  if(istSpend || istWunsch){
+    ziBlock = `<div class="line neg"><span>Kostet Zukunfts-Ich</span><span>${HORIZONTE.map(j=>`−${eur(zukunft(preis,j))} (${j} J.)`).join(' · ')}</span></div>`;
+  } else {
+    const label = istRetoure ? 'Zurückgeschickt – bringt Zukunfts-Ich' : 'Bringt Zukunfts-Ich';
+    ziBlock = `<div class="line pos"><span>${label}</span><span>${HORIZONTE.map(j=>`+${eur(zukunft(preis,j))} (${j} J.)`).join(' · ')}</span></div>`;
+  }
+
+  let extraBlock = '';
+  if(istWunsch){
+    const wt = wunschTage(preis);
+    const wd = new Date(wunschFrist(preis)).toLocaleDateString('de-DE',{day:'2-digit', month:'2-digit', year:'2-digit'});
+    extraBlock = `<hr><div class="line small" style="color:var(--warn);"><span>🕐 Bedenkzeit (auto nach Preis)</span><span>${wt} Tage → Kauf frühestens ab ${wd}</span></div>`;
+  } else if(istRetoure){
+    extraBlock = `<hr><div class="line small" style="color:var(--retoure);"><span>↩️ Kaufpreis zurückerstattet</span><span>${eur(preis)}</span></div>`;
+  } else if(istSpend && vergleich > 0){
+    const ersHeute = vergleich - preis;
+    const sign = ersHeute >= 0 ? '+' : '−';
+    const cls2 = ersHeute >= 0 ? 'pos' : 'neg';
+    const icon = ersHeute >= 0 ? '💚' : '⚠️';
+    const inJahren = HORIZONTE.map(j=>{
+      const d = zukunft(vergleich,j) - zukunft(preis,j);
+      return `${sign}${eur(Math.abs(d))} (${j} J.)`;
+    }).join(' · ');
+    extraBlock = `<hr>
+      <div class="line ${cls2} small"><span>${icon} Ersparnis vs. ${eur(vergleich)}</span><span>${sign}${eur(Math.abs(ersHeute))} heute</span></div>
+      <div class="line ${cls2} small"><span></span><span>${inJahren}</span></div>`;
+  }
+
+  document.getElementById('preview').innerHTML = `
+    <div class="title">👁️ Vorschau (${t.label})</div>
+    <div class="big ${cls}">${fmt(h,1)} h Arbeit</div>
+    <div class="subline">≈ ${fmt(tage,1)} Arbeitstage (à ${state.tag} h)</div>
+    <hr>
+    <div class="line strong"><span>${istRetoure ? 'Kaufpreis' : 'Preis'}</span><span>${eur(preis)}</span></div>
+    ${proMonatZeile}${ziBlock}${extraBlock}`;
+}
+
+['f-preis','f-jahre','f-vergleich'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{ syncJahreChips(); renderPreview(); });
+});
+
+document.getElementById('f-save').onclick = ()=>{
+  const name = document.getElementById('f-name').value.trim() || 'Unbenannt';
+  const preis = +document.getElementById('f-preis').value || 0;
+  const jahr = +document.getElementById('f-jahr').value || CURRENT_YEAR;
+  const typ = document.getElementById('f-typ').value;
+  const jahre = +document.getElementById('f-jahre').value || 0;
+  const vergleich = +document.getElementById('f-vergleich').value || 0;
+
+  if(preis <= 0){ alert('Bitte einen Preis > 0 angeben.'); return; }
+
+  let frist = null;
+  if(typ === 'wunsch'){
+    if(editingId){
+      const old = state.entscheidungen.find(x=>x.id===editingId);
+      frist = (old && old.frist && +preis === +old.preis) ? old.frist : wunschFrist(preis);
+    } else {
+      frist = wunschFrist(preis);
+    }
+  }
+
+  if(editingId){
+    const idx = state.entscheidungen.findIndex(x=>x.id===editingId);
+    if(idx >= 0) state.entscheidungen[idx] = {...state.entscheidungen[idx], name, preis, jahr, typ, jahre, vergleich, frist};
+  } else {
+    state.entscheidungen.push({ id: Date.now()+Math.random(), name, preis, jahr, typ, jahre, vergleich, frist });
+  }
+  save(); resetForm(); renderAll();
+};
+
+function buildEntryHtml(e, showActions){
+  const t = TYPEN[e.typ];
+  const istSpend = t.klasse === 'spend';
+  const istRetoure = t.klasse === 'retoure';
+  const istWunsch = e.typ === 'wunsch';
+  const h = e.preis / state.lohn;
+  const tage = h / state.tag;
+  const vergleich = e.vergleich || 0;
+  const proMonat = (t.hatJahre && e.jahre > 0) ? e.preis / (e.jahre * 12) : null;
+
+  const yearTag = `<span class="badge">${e.jahr || CURRENT_YEAR}</span>`;
+  const preisZeile = `${eur(e.preis)}${vergleich > 0 ? ' statt ' + eur(vergleich) : ''} · <b>${fmt(h,1)} h</b> (${fmt(tage,1)} Tage)`;
+
+  const proMonatZeile = proMonat !== null
+    ? `<div class="meta">${istSpend ? 'Kosten' : 'Gespart'} ≈ ${eur(proMonat)} / Monat (${fmt((proMonat/state.lohn)*60,1)} Min)</div>` : '';
+
+  let ziZeile = (istSpend || istWunsch)
+    ? `<div class="meta">Kostet Zukunfts-Ich: <span class="neg">${HORIZONTE.map(j=>`−${eur(zukunft(e.preis,j))} (${j} J.)`).join(' · ')}</span></div>`
+    : `<div class="meta">Bringt Zukunfts-Ich: <span class="pos">${HORIZONTE.map(j=>`+${eur(zukunft(e.preis,j))} (${j} J.)`).join(' · ')}</span></div>`;
+
+  let extraZeile = '';
+  if(istWunsch){
+    const fTage = e.frist ? tageBis(e.frist) : null;
+    const fCls = fTage === null ? '' : (fTage < 0 ? 'neg' : fTage <= 3 ? 'warn' : '');
+    extraZeile = `<div class="meta ${fCls}">🕐 ${e.frist ? kaufFristLabel(e.frist) : 'keine Frist'}</div>`;
+  } else if(istRetoure){
+    extraZeile = `<div class="meta retoure">↩️ Kaufpreis zurückerstattet · ${eur(e.preis)}</div>`;
+  } else if(istSpend && vergleich > 0){
+    const ersHeute = vergleich - e.preis;
+    const sign = ersHeute >= 0 ? '+' : '−';
+    const cls2 = ersHeute >= 0 ? 'pos' : 'neg';
+    const icon = ersHeute >= 0 ? '💚' : '⚠️';
+    const inJahren = HORIZONTE.map(j=>{
+      const d = zukunft(vergleich,j) - zukunft(e.preis,j);
+      return `${sign}${eur(Math.abs(d))} (${j} J.)`;
+    }).join(' · ');
+    extraZeile = `<div class="meta ${cls2}">${icon} ${sign}${eur(Math.abs(ersHeute))} heute · ${inJahren}</div>`;
+  }
+
+  const actions = showActions ? `<div class="actions">
+      <button class="ghost tiny" onclick="startEdit(${e.id})" aria-label="Bearbeiten">✏️</button>
+      <button class="danger tiny" onclick="delEntry(${e.id})" aria-label="Löschen">✕</button>
+    </div>` : '';
+
+  const wunschActions = (showActions && istWunsch) ? `<div class="quick-actions">
+      <button onclick="resolveWunsch(${e.id},'gekauft')">✅ Gekauft</button>
+      <button class="ghost" onclick="resolveWunsch(${e.id},'verworfen')">💚 Verworfen</button>
+    </div>` : '';
+
+  let wunschCls = '';
+  if(istWunsch && e.frist){
+    const fTage = tageBis(e.frist);
+    if(fTage < 0) wunschCls = ' overdue';
+    else if(fTage <= 3) wunschCls = ' soon';
+  }
+
+  return `<div class="entry ${t.klasse}${wunschCls}">
+    <div class="top">
+      <div class="main">
+        <div class="name">${escapeHtml(e.name)}<span class="badge ${t.klasse}">${t.label}</span>${yearTag}</div>
+        <div class="meta">${preisZeile}</div>
+        ${proMonatZeile}${ziZeile}${extraZeile}
+      </div>
+      ${actions}
+    </div>
+    ${wunschActions}
+  </div>`;
+}
+
+function renderList(){
+  const list = document.getElementById('list');
+  if(!state.entscheidungen.length){
+    list.innerHTML = '<div class="empty">Noch keine Einträge – füge deine erste Entscheidung hinzu. 💪</div>';
+    return;
+  }
+  const sorted = [...state.entscheidungen].sort((a,b) => (b.jahr||0) - (a.jahr||0) || b.id - a.id);
+  list.innerHTML = sorted.map(e => buildEntryHtml(e, true)).join('');
+}
+
+function delEntry(id){
+  if(!confirm('Eintrag löschen?')) return;
+  state.entscheidungen = state.entscheidungen.filter(x=>x.id!==id);
+  if(editingId === id) resetForm();
+  save(); renderAll();
+}
+
+function resolveWunsch(id, outcome){
+  const e = state.entscheidungen.find(x=>x.id===id);
+  if(!e || e.typ !== 'wunsch') return;
+  e.typ = outcome === 'gekauft' ? 'neukauf' : 'verzicht';
+  e.jahre = e.jahre || 5;
+  delete e.frist;
+  save(); renderAll();
+}
+
+function renderSummary(){
+  const aus = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='spend');
+  const spa = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='save');
+  const ret = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='retoure');
+  const wunsch = state.entscheidungen.filter(e=>e.typ==='wunsch');
+  const ver = state.inventar.filter(it=>it.status==='verkauft');
+
+  const sumAus = aus.reduce((a,e)=>a+e.preis,0);
+  const sumSpa = spa.reduce((a,e)=>a+e.preis,0);
+  const sumRet = ret.reduce((a,e)=>a+e.preis,0);
+  const sumVer = ver.reduce((a,it)=>a+(it.wert||0),0);
+  const sumGespart = sumSpa + sumRet;
+  const hAus = sumAus / state.lohn, hSpa = sumSpa / state.lohn, hRet = sumRet / state.lohn, hVer = sumVer / state.lohn;
+
+  const salden = HORIZONTE.map(j=>({j, s: zukunft(sumGespart + sumVer, j) - zukunft(sumAus, j)}));
+  const saldoCells = salden.map(x=>`
+    <div class="cell">
+      <div class="h">${x.j} J.</div>
+      <div class="v ${x.s >= 0 ? 'pos' : 'neg'}">${x.s >= 0 ? '+' : '−'}${eur(Math.abs(x.s))}</div>
+    </div>`).join('');
+
+  document.getElementById('summary').innerHTML = `
+    <h2>📊 Gesamt-Übersicht (alle Jahre)</h2>
+    <div class="cols">
+      <div class="stat spend"><div class="lbl">Ausgegeben</div><div class="val">${eur(sumAus)}</div><div class="sub">${fmt(hAus,1)} h · ${aus.length} Käufe</div></div>
+      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${fmt(hSpa,1)} h · ${spa.length} Verzichte</div></div>
+      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${fmt(hRet,1)} h · ${ret.length} Retouren</div></div>
+      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${fmt(hVer,1)} h · ${ver.length} Verkäufe</div></div>
+      ${wunsch.length ? `<div class="stat warn"><div class="lbl">🕐 In Bedenkzeit</div><div class="val">${eur(wunsch.reduce((a,e)=>a+e.preis,0))}</div><div class="sub">${wunsch.length} offene Wünsche</div></div>` : ''}
+    </div>
+    <div class="balance">
+      <div class="lbl">Netto-Saldo Zukunfts-Ich (Verzicht + Retoure + Erlöse − Käufe)</div>
+      <div class="grid">${saldoCells}</div>
+    </div>`;
+}
+
+/* ==================================================================
+   INVENTAR
+   ================================================================== */
+function updateItemLabels(){
+  const wertWrap = document.getElementById('i-wert-wrap');
+  const kaufpreisWrap = document.getElementById('i-kaufpreis-wrap');
+  const fristWrap = document.getElementById('i-frist-wrap');
+  const wertLabel = document.getElementById('i-wert-label');
+
+  if(currentItemStatus === 'behalten'){
+    wertWrap.style.display = 'none'; kaufpreisWrap.style.display = 'none'; fristWrap.style.display = 'none';
+  } else if(currentItemStatus === 'projekt'){
+    wertWrap.style.display = 'none'; kaufpreisWrap.style.display = 'none'; fristWrap.style.display = 'block';
+  } else if(currentItemStatus === 'verkaufen'){
+    wertWrap.style.display = 'block';
+    wertLabel.innerHTML = 'Erwarteter Verkaufswert (€) <span class="opt">optional</span>';
+    kaufpreisWrap.style.display = 'block'; fristWrap.style.display = 'block';
+  } else if(currentItemStatus === 'verkauft'){
+    wertWrap.style.display = 'block';
+    wertLabel.innerHTML = '💸 Tatsächlich verkauft für (€) <span class="opt">optional</span>';
+    kaufpreisWrap.style.display = 'block'; fristWrap.style.display = 'none';
+  }
+  document.querySelectorAll('#i-status-row .status-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.status === currentItemStatus);
+  });
+}
+
+document.querySelectorAll('#i-status-row .status-btn').forEach(b=>{
+  b.onclick = ()=>{ currentItemStatus = b.dataset.status; updateItemLabels(); renderItemPreview(); };
+});
+
+document.querySelectorAll('#i-frist-chips .chip').forEach(c=>{
+  c.onclick = ()=>{
+    const d = +c.dataset.d;
+    if(d === 0){ document.getElementById('i-frist').value = ''; }
+    else {
+      const ziel = new Date(); ziel.setDate(ziel.getDate() + d);
+      document.getElementById('i-frist').value = ziel.toISOString().slice(0,10);
+    }
+    renderItemPreview();
+  };
+});
+
+function resetItemForm(){
+  editingItemId = null;
+  currentItemStatus = 'verkaufen';
+  document.getElementById('i-name').value = '';
+  document.getElementById('i-wert').value = '';
+  document.getElementById('i-jahr').value = CURRENT_YEAR;
+  document.getElementById('i-kaufpreis').value = '';
+  document.getElementById('i-frist').value = '';
+  document.getElementById('i-form-title').textContent = '➕ Neues Inventar-Item';
+  document.getElementById('i-save').textContent = 'Hinzufügen';
+  document.getElementById('i-cancel').style.display = 'none';
+  updateItemLabels(); renderItemPreview();
+}
+
+function startItemEdit(id){
+  const it = state.inventar.find(x=>x.id===id);
+  if(!it) return;
+  editingItemId = id;
+  currentItemStatus = it.status;
+  document.getElementById('i-name').value = it.name;
+  document.getElementById('i-wert').value = it.wert || '';
+  document.getElementById('i-jahr').value = it.jahr || CURRENT_YEAR;
+  document.getElementById('i-kaufpreis').value = it.kaufpreis || '';
+  document.getElementById('i-frist').value = it.frist || '';
+  document.getElementById('i-form-title').textContent = '✏️ Bearbeiten';
+  document.getElementById('i-save').textContent = 'Aktualisieren';
+  document.getElementById('i-cancel').style.display = 'inline-block';
+  updateItemLabels(); renderItemPreview();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('i-cancel').onclick = resetItemForm;
+
+function renderItemPreview(){
+  const name = document.getElementById('i-name').value.trim();
+  const wert = +document.getElementById('i-wert').value || 0;
+  const kaufpreis = +document.getElementById('i-kaufpreis').value || 0;
+  const frist = document.getElementById('i-frist').value;
+  const preview = document.getElementById('i-preview');
+  const s = ITEM_STATUS[currentItemStatus];
+
+  let html = `<div class="title">👁️ Vorschau (${s.label})</div>`;
+
+  if(currentItemStatus === 'behalten'){
+    html += `<div class="big muted">📦 Behalten</div><div class="subline">Kein Wert, keine Frist – gehört dir.</div>`;
+    if(name) html += `<hr><div class="line strong"><span>Was</span><span>${escapeHtml(name)}</span></div>`;
+  } else if(currentItemStatus === 'projekt'){
+    html += `<div class="big muted">🔧 Projekt</div><div class="subline">Aufheben für später – nur Deadline zählt.</div>`;
+    if(name) html += `<hr><div class="line strong"><span>Was</span><span>${escapeHtml(name)}</span></div>`;
+    if(frist){
+      const t = tageBis(frist); const cls = t < 0 ? 'neg' : (t <= 30 ? 'warn' : '');
+      html += `<div class="line small"><span>Frist</span><span class="${cls}">${fristLabel(frist)}</span></div>`;
+    }
+  } else if(wert <= 0){
+    html += `<div class="big warn">Wert fehlt</div><div class="subline">Verkaufswert eingeben um Vorschau zu sehen…</div>`;
+    if(name) html += `<hr><div class="line strong"><span>Was</span><span>${escapeHtml(name)}</span></div>`;
+  } else {
+    const h = wert / state.lohn;
+    const tage = h / state.tag;
+    const cls = h > 40 ? 'danger' : h > 15 ? 'warn' : '';
+    const label = currentItemStatus === 'verkauft' ? 'Erlös' : 'Erwarteter Erlös';
+
+    html += `<div class="big ${cls}">${fmt(h,1)} h Arbeit</div>`;
+    html += `<div class="subline">≈ ${fmt(tage,1)} Arbeitstage (à ${state.tag} h)</div><hr>`;
+    html += `<div class="line strong"><span>${label}</span><span>${eur(wert)}</span></div>`;
+    html += `<div class="line pos"><span>Bringt Zukunfts-Ich</span><span>${HORIZONTE.map(j=>`+${eur(zukunft(wert,j))} (${j} J.)`).join(' · ')}</span></div>`;
+
+    if(kaufpreis > 0){
+      const diff = wert - kaufpreis; const pct = (wert / kaufpreis) * 100;
+      html += `<hr><div class="line small"><span>Damals gezahlt</span><span>${eur(kaufpreis)}</span></div>`;
+      if(diff >= 0) html += `<div class="line pos small"><span>💚 Gewinn</span><span>+${eur(diff)} (${fmt(pct,0)} %)</span></div>`;
+      else html += `<div class="line neg small"><span>➖ Verlust aus Fehlkauf</span><span>${eur(diff)} (${fmt(pct,0)} % zurück)</span></div>`;
+    }
+    if(frist && currentItemStatus === 'verkaufen'){
+      const t = tageBis(frist); const cls2 = t < 0 ? 'neg' : (t <= 30 ? 'warn' : '');
+      html += `<div class="line small"><span>Frist</span><span class="${cls2}">${fristLabel(frist)}</span></div>`;
+    }
+  }
+  preview.innerHTML = html;
+}
+
+['i-wert','i-kaufpreis','i-name','i-frist'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', renderItemPreview);
+});
+
+document.getElementById('i-save').onclick = ()=>{
+  const name = document.getElementById('i-name').value.trim() || 'Unbenannt';
+  const wert = +document.getElementById('i-wert').value || 0;
+  const jahr = +document.getElementById('i-jahr').value || CURRENT_YEAR;
+  const kaufpreis = +document.getElementById('i-kaufpreis').value || 0;
+  const frist = document.getElementById('i-frist').value || '';
+
+  if(editingItemId){
+    const idx = state.inventar.findIndex(x=>x.id===editingItemId);
+    if(idx >= 0) state.inventar[idx] = {...state.inventar[idx], name, status: currentItemStatus, wert, jahr, kaufpreis, frist};
+  } else {
+    state.inventar.push({ id: Date.now()+Math.random(), name, status: currentItemStatus, wert, jahr, kaufpreis, frist });
+  }
+  save(); resetItemForm(); renderAll();
+};
+
+function markAsSold(id){
+  const it = state.inventar.find(x=>x.id===id);
+  if(!it) return;
+  const eingabe = prompt(`Für wie viel hast du "${it.name}" verkauft?`, it.wert || '');
+  if(eingabe === null) return;
+  const wert = +eingabe || 0;
+  it.status = 'verkauft'; it.wert = wert;
+  save(); renderAll();
+}
+
+function quickStatus(id, status){
+  const it = state.inventar.find(x=>x.id===id);
+  if(!it) return;
+  it.status = status; save(); renderAll();
+}
+
+function renderInventar(){
+  const list = document.getElementById('i-list');
+  const sum = document.getElementById('i-summary');
+
+  const ueberfaellig = state.inventar.filter(it => {
+    if(it.status === 'verkauft' || it.status === 'behalten') return false;
+    const t = tageBis(it.frist);
+    return t !== null && t < 0;
+  });
+  const zumVerkauf = state.inventar.filter(it => it.status === 'verkaufen');
+  const verkaufspotenzial = zumVerkauf.reduce((a,it)=>a + (it.wert || 0), 0);
+  const verkauftItems = state.inventar.filter(it=>it.status==='verkauft');
+  const verkauftGesamt = verkauftItems.reduce((a,it)=>a+(it.wert||0),0);
+  const hVerkauft = verkauftGesamt / state.lohn;
+  const hPotenzial = verkaufspotenzial / state.lohn;
+
+  sum.innerHTML = `
+    <h2>📦 Inventar-Übersicht</h2>
+    <div class="cols">
+      <div class="stat warn"><div class="lbl">Überfällig</div><div class="val ${ueberfaellig.length ? 'neg' : ''}">${ueberfaellig.length}</div><div class="sub">${ueberfaellig.length ? 'Deadline gerissen' : 'alles im Plan'}</div></div>
+      <div class="stat income"><div class="lbl">Verkaufspotenzial</div><div class="val">${eur(verkaufspotenzial)}</div><div class="sub">${zumVerkauf.length} Items · ${fmt(hPotenzial,1)} h</div></div>
+      <div class="stat save"><div class="lbl">Erlöse</div><div class="val">${eur(verkauftGesamt)}</div><div class="sub">${verkauftItems.length} Items · ${fmt(hVerkauft,1)} h</div></div>
+    </div>`;
+
+  if(!state.inventar.length){
+    list.innerHTML = '<div class="empty">Noch keine Items – trag dein erstes ein. 📦</div>';
+    return;
+  }
+
+  const sortiert = [...state.inventar].sort((a,b)=> sortKey(a) - sortKey(b));
+
+  const groups = { overdue:[], soon:[], verkaufen:[], projekt:[], behalten:[], verkauft:[] };
+  sortiert.forEach(it=>{
+    if(it.status === 'verkauft'){ groups.verkauft.push(it); return; }
+    if(it.status === 'behalten'){ groups.behalten.push(it); return; }
+    const t = tageBis(it.frist);
+    if(t !== null && t < 0){ groups.overdue.push(it); return; }
+    if(t !== null && t <= 30){ groups.soon.push(it); return; }
+    if(it.status === 'verkaufen'){ groups.verkaufen.push(it); return; }
+    if(it.status === 'projekt'){ groups.projekt.push(it); return; }
+  });
+
+  const groupDefs = [
+    {key:'overdue',  label:'🔴 Überfällig',     cls:'overdue'},
+    {key:'soon',     label:'🟡 Bald fällig',    cls:'soon'},
+    {key:'verkaufen',label:'💰 Zum Verkauf',    cls:''},
+    {key:'projekt',  label:'🔧 Projekte',       cls:''},
+    {key:'behalten', label:'📦 Behalten',       cls:''},
+    {key:'verkauft', label:'✅ Verkauft',       cls:''}
+  ];
+
+  let html = '';
+  groupDefs.forEach(g=>{
+    const items = groups[g.key];
+    if(!items.length) return;
+    html += `<div class="group-header ${g.cls}">${g.label} (${items.length})</div>`;
+    items.forEach(it=>{
+      const it2 = ITEM_STATUS[it.status];
+      const t = tageBis(it.frist);
+      const cls = (t !== null && t < 0) ? 'overdue' : (t !== null && t <= 30 ? 'soon' : (it.status === 'verkauft' ? 'done' : ''));
+
+      const metaArr = [];
+      if(it.wert) metaArr.push(`<b>${eur(it.wert)}</b>`);
+      if(it.frist && it.status !== 'verkauft') metaArr.push(`Frist: ${fristLabel(it.frist)}`);
+      const metaStr = metaArr.join(' · ');
+
+      let zusatz = '';
+      if(it.status === 'verkauft' && it.kaufpreis > 0 && it.wert > 0){
+        const diff = it.wert - it.kaufpreis; const pct = (it.wert / it.kaufpreis) * 100;
+        zusatz = diff >= 0
+          ? `<div class="meta pos">💚 Damals ${eur(it.kaufpreis)} · Gewinn +${eur(diff)} (${fmt(pct,0)} %)</div>`
+          : `<div class="meta neg">➖ Damals ${eur(it.kaufpreis)} · Verlust ${eur(diff)} (${fmt(pct,0)} % zurück)</div>`;
+      }
+      if(it.status === 'verkauft' && it.wert > 0){
+        zusatz += `<div class="meta pos">Zukunfts-Ich: ${HORIZONTE.map(j=>`+${eur(zukunft(it.wert,j))} (${j} J.)`).join(' · ')}</div>`;
+      }
+      if(it.status === 'verkaufen' && it.wert > 0){
+        zusatz += `<div class="meta">Mögliches Zukunfts-Ich: ${HORIZONTE.map(j=>`+${eur(zukunft(it.wert,j))} (${j} J.)`).join(' · ')}</div>`;
+      }
+
+      let quickActions = '';
+      if(it.status === 'verkaufen'){
+        quickActions = `<div class="quick-actions">
+          <button onclick="markAsSold(${it.id})">💸 Verkauft!</button>
+          <button class="ghost" onclick="quickStatus(${it.id}, 'behalten')">📦 Behalten</button>
+          <button class="ghost" onclick="quickStatus(${it.id}, 'projekt')">🔧 Projekt</button>
+        </div>`;
+      } else if(it.status === 'verkauft'){
+        quickActions = `<div class="quick-actions"><button class="ghost" onclick="quickStatus(${it.id}, 'verkaufen')">↩️ Rückgängig</button></div>`;
+      } else if(it.status === 'projekt'){
+        quickActions = `<div class="quick-actions">
+          <button class="ghost" onclick="quickStatus(${it.id}, 'verkaufen')">💰 Verkaufen</button>
+          <button class="ghost" onclick="quickStatus(${it.id}, 'behalten')">📦 Behalten</button>
+        </div>`;
+      }
+
+      html += `<div class="entry ${cls}">
+        <div class="top">
+          <div class="main">
+            <div class="name">${escapeHtml(it.name)}<span class="badge ${it2.badge}">${it2.label}</span><span class="badge">${it.jahr || CURRENT_YEAR}</span></div>
+            ${metaStr ? `<div class="meta">${metaStr}</div>` : ''}
+            ${zusatz}
+          </div>
+          <div class="actions">
+            <button class="ghost tiny" onclick="startItemEdit(${it.id})" aria-label="Bearbeiten">✏️</button>
+            <button class="danger tiny" onclick="delItem(${it.id})" aria-label="Löschen">✕</button>
+          </div>
+        </div>
+        ${quickActions}
+      </div>`;
+    });
+  });
+  list.innerHTML = html;
+}
+
+function sortKey(it){
+  if(it.status === 'verkauft') return 100000;
+  if(it.status === 'behalten') return 90000;
+  const t = tageBis(it.frist);
+  if(t === null) return 50000;
+  if(t < 0) return -10000 + t;
+  return t;
+}
+
+function delItem(id){
+  if(!confirm('Item löschen?')) return;
+  state.inventar = state.inventar.filter(x=>x.id!==id);
+  if(editingItemId === id) resetItemForm();
+  save(); renderAll();
+}
+
+/* ==================================================================
+   JAHRE
+   ================================================================== */
+function renderJahre(){
+  const years = getAllYears();
+  const isGesamt = currentYear === 'all';
+  const chips = document.getElementById('jahre-tab-chips');
+
+  if(currentYear !== 'all' && !years.includes(currentYear)) currentYear = 'all';
+
+  chips.innerHTML =
+    `<button class="chip ${isGesamt ? 'active' : ''}" onclick="selectYear('all')">Gesamt</button>` +
+    years.map(y => `<button class="chip ${y === currentYear ? 'active' : ''}" onclick="selectYear(${y})">${y}</button>`).join('');
+
+  document.getElementById('jahre-print-header').innerHTML =
+    isGesamt ? 'Gesamtübersicht (alle Jahre)' : `Jahresübersicht ${currentYear}`;
+
+  let entscheidungenFilter, inventarVerkauftFilter;
+  if(isGesamt){
+    entscheidungenFilter = state.entscheidungen;
+    inventarVerkauftFilter = state.inventar.filter(it => it.status === 'verkauft');
+  } else {
+    entscheidungenFilter = state.entscheidungen.filter(e => (+e.jahr || CURRENT_YEAR) === currentYear);
+    inventarVerkauftFilter = state.inventar.filter(it => it.status === 'verkauft' && (+it.jahr || CURRENT_YEAR) === currentYear);
+  }
+
+  const aus = entscheidungenFilter.filter(e => TYPEN[e.typ].klasse === 'spend');
+  const spa = entscheidungenFilter.filter(e => TYPEN[e.typ].klasse === 'save');
+  const ret = entscheidungenFilter.filter(e => TYPEN[e.typ].klasse === 'retoure');
+
+  const sumAus = aus.reduce((a,e)=>a+e.preis,0);
+  const sumSpa = spa.reduce((a,e)=>a+e.preis,0);
+  const sumRet = ret.reduce((a,e)=>a+e.preis,0);
+  const sumVer = inventarVerkauftFilter.reduce((a,it)=>a+(it.wert||0),0);
+  const sumGespart = sumSpa + sumRet;
+
+  const hAus = sumAus / state.lohn;
+  const hSpa = sumSpa / state.lohn;
+  const hRet = sumRet / state.lohn;
+  const hVer = sumVer / state.lohn;
+
+  const salden = HORIZONTE.map(j=>({j, s: zukunft(sumGespart + sumVer, j) - zukunft(sumAus, j)}));
+  const saldoCells = salden.map(x=>`
+    <div class="cell">
+      <div class="h">${x.j} J.</div>
+      <div class="v ${x.s >= 0 ? 'pos' : 'neg'}">${x.s >= 0 ? '+' : '−'}${eur(Math.abs(x.s))}</div>
+    </div>`).join('');
+
+  const titel = isGesamt ? '📅 Gesamt (alle Jahre)' : `📅 ${currentYear}`;
+
+  document.getElementById('jahre-summary').innerHTML = `
+    <h2>${titel}</h2>
+    <div class="cols">
+      <div class="stat spend"><div class="lbl">Ausgegeben</div><div class="val">${eur(sumAus)}</div><div class="sub">${fmt(hAus,1)} h · ${aus.length} Käufe</div></div>
+      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${fmt(hSpa,1)} h · ${spa.length} Verzichte</div></div>
+      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${fmt(hRet,1)} h · ${ret.length} Retouren</div></div>
+      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${fmt(hVer,1)} h · ${inventarVerkauftFilter.length} Verkäufe</div></div>
+    </div>
+    <div class="balance">
+      <div class="lbl">Netto-Saldo Zukunfts-Ich (Verzicht + Retoure + Erlöse − Käufe)</div>
+      <div class="grid">${saldoCells}</div>
+    </div>`;
+
+  renderJahreInventar(isGesamt, inventarVerkauftFilter);
+
+  const allEntries = [
+    ...entscheidungenFilter.map(e => ({type:'decision', data:e, sortId: e.id})),
+    ...inventarVerkauftFilter.map(it => ({type:'sale', data:it, sortId: it.id}))
+  ].sort((a,b) => b.sortId - a.sortId);
+
+  const listEl = document.getElementById('jahre-list');
+  const leerText = isGesamt ? 'Keine Einträge.' : `Keine Einträge für ${currentYear}.`;
+
+  if(!allEntries.length){
+    listEl.innerHTML = `<div class="empty">${leerText}</div>`;
+    return;
+  }
+
+  listEl.innerHTML = allEntries.map(entry => {
+    if(entry.type === 'decision'){
+      return buildEntryHtml(entry.data, false);
+    } else {
+      const it = entry.data;
+      const h = it.wert / state.lohn;
+      const tage = h / state.tag;
+      let zusatz = '';
+      if(it.kaufpreis > 0 && it.wert > 0){
+        const diff = it.wert - it.kaufpreis;
+        const pct = (it.wert / it.kaufpreis) * 100;
+        zusatz = diff >= 0
+          ? `<div class="meta pos">💚 Damals ${eur(it.kaufpreis)} · Gewinn +${eur(diff)} (${fmt(pct,0)} %)</div>`
+          : `<div class="meta neg">➖ Damals ${eur(it.kaufpreis)} · Verlust ${eur(diff)} (${fmt(pct,0)} % zurück)</div>`;
+      }
+      const yearTag = `<span class="badge">${it.jahr || CURRENT_YEAR}</span>`;
+      return `<div class="entry income">
+        <div class="top">
+          <div class="main">
+            <div class="name">${escapeHtml(it.name)}<span class="badge income">Verkauf</span>${yearTag}</div>
+            <div class="meta">${eur(it.wert)} · <b>${fmt(h,1)} h</b> (${fmt(tage,1)} Tage)</div>
+            <div class="meta">Bringt Zukunfts-Ich: <span class="pos">${HORIZONTE.map(j=>`+${eur(zukunft(it.wert,j))} (${j} J.)`).join(' · ')}</span></div>
+            ${zusatz}
+          </div>
+        </div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function renderJahreInventar(isGesamt, verkauftFilter){
+  const container = document.getElementById('jahre-inventar');
+
+  const behalten = state.inventar.filter(it => it.status === 'behalten');
+  const projekte = state.inventar.filter(it => it.status === 'projekt');
+  const zumVerkauf = state.inventar.filter(it => it.status === 'verkaufen');
+
+  if(!state.inventar.length){
+    container.innerHTML = '<div class="empty">Kein Inventar erfasst.</div>';
+    return;
+  }
+
+  let html = '';
+
+  if(verkauftFilter.length){
+    const sumVerkauft = verkauftFilter.reduce((a,it)=>a+(it.wert||0),0);
+    const sumKaufpreis = verkauftFilter.reduce((a,it)=>a+(it.kaufpreis||0),0);
+    const headerLabel = isGesamt ? '✅ Verkauft (alle Jahre)' : `✅ Verkauft in ${currentYear}`;
+
+    html += `<div class="group-header">${headerLabel} — ${verkauftFilter.length} Items · ${eur(sumVerkauft)}</div>`;
+    verkauftFilter.forEach(it=>{
+      let detail = '';
+      if(it.kaufpreis > 0 && it.wert > 0){
+        const diff = it.wert - it.kaufpreis;
+        const pct = (it.wert / it.kaufpreis) * 100;
+        detail = diff >= 0
+          ? ` · <span class="pos">Gewinn +${eur(diff)} (${fmt(pct,0)} %)</span>`
+          : ` · <span class="neg">Verlust ${eur(diff)} (${fmt(pct,0)} % zurück)</span>`;
+      }
+      html += `<div class="inv-row">
+        <div class="inv-name">${escapeHtml(it.name)} <span class="badge verkauft">${it.jahr || CURRENT_YEAR}</span>${detail}</div>
+        <div class="inv-val pos">+${eur(it.wert||0)}</div>
+      </div>`;
+    });
+
+    if(sumKaufpreis > 0){
+      const totalDiff = sumVerkauft - sumKaufpreis;
+      const sign = totalDiff >= 0 ? '+' : '−';
+      const cls = totalDiff >= 0 ? 'pos' : 'neg';
+      const label = totalDiff >= 0 ? 'Gesamt-Gewinn' : 'Gesamt-Verlust';
+      html += `<div class="inv-row" style="margin-top:6px; border-top:2px solid var(--border); padding-top:10px;">
+        <div class="inv-name"><b>${label}</b> (Erlös ${eur(sumVerkauft)} vs. damals ${eur(sumKaufpreis)})</div>
+        <div class="inv-val ${cls}">${sign}${eur(Math.abs(totalDiff))}</div>
+      </div>`;
+    }
+  }
+
+  if(zumVerkauf.length){
+    const sum = zumVerkauf.reduce((a,it)=>a+(it.wert||0),0);
+    html += `<div class="group-header">💰 Zum Verkauf (aktueller Stand) — ${zumVerkauf.length} Items · ${eur(sum)}</div>`;
+    zumVerkauf.forEach(it=>{
+      const frist = it.frist ? ` · Frist: ${fristLabel(it.frist)}` : '';
+      html += `<div class="inv-row">
+        <div class="inv-name">${escapeHtml(it.name)}${frist}</div>
+        <div class="inv-val warn">${it.wert ? eur(it.wert) : '—'}</div>
+      </div>`;
+    });
+  }
+
+  if(projekte.length){
+    html += `<div class="group-header">🔧 Projekte (aktueller Stand) — ${projekte.length} Items</div>`;
+    projekte.forEach(it=>{
+      const frist = it.frist ? `Frist: ${fristLabel(it.frist)}` : 'keine Frist';
+      html += `<div class="inv-row">
+        <div class="inv-name">${escapeHtml(it.name)}</div>
+        <div class="inv-val muted" style="font-weight:400;">${frist}</div>
+      </div>`;
+    });
+  }
+
+  if(behalten.length){
+    html += `<div class="group-header">📦 Behalten (aktueller Stand) — ${behalten.length} Items</div>`;
+    behalten.forEach(it=>{
+      html += `<div class="inv-row">
+        <div class="inv-name">${escapeHtml(it.name)}</div>
+        <div class="inv-val muted" style="font-weight:400;">—</div>
+      </div>`;
+    });
+  }
+
+  if(!html){
+    html = '<div class="empty">Kein Inventar erfasst.</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function selectYear(y){
+  currentYear = y;
+  renderJahre();
+}
+
+/* ============ EINSTELLUNGEN ============ */
+function loadSettings(){
+  document.getElementById('s-lohn').value = state.lohn;
+  document.getElementById('s-tag').value = state.tag;
+  document.getElementById('s-rendite').value = state.rendite;
+}
+['s-lohn','s-tag','s-rendite'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', e=>{
+    const v = +e.target.value;
+    if(id==='s-lohn') state.lohn = v || 1;
+    if(id==='s-tag') state.tag = v || 1;
+    if(id==='s-rendite') state.rendite = v;
+    save(); renderAll(); renderPreview(); renderItemPreview();
+  });
+});
+
+/* ============ EXPORT / IMPORT ============ */
+document.getElementById('export').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'frugal-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+};
+document.getElementById('import-btn').onclick = ()=> document.getElementById('import-file').click();
+document.getElementById('import-file').onchange = e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const data = JSON.parse(r.result);
+      const { gans, ...rest } = data;
+      state = {...DEF, ...rest, inventar: rest.inventar || []};
+      save(); loadSettings(); resetForm(); resetItemForm(); renderAll();
+      alert('Import erfolgreich ✅');
+    }catch(err){ alert('Fehler beim Import: ' + err.message); }
+  };
+  r.readAsText(f);
+};
+document.getElementById('reset').onclick = ()=>{
+  if(confirm('Wirklich ALLES zurücksetzen?')){
+    state = {...DEF};
+    save(); loadSettings(); resetForm(); resetItemForm(); renderAll();
+  }
+};
+
+/* ============ INIT ============ */
+function renderAll(){ renderSummary(); renderList(); renderInventar(); renderJahre(); }
+loadSettings();
+resetForm();
+resetItemForm();
+renderAll();
+</script>
+</body>
+</html>
