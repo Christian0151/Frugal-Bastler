@@ -57,6 +57,21 @@
     font-size:16px; font-family:inherit; min-height:44px; transition:border-color .15s;
   }
   input:focus,select:focus{outline:none; border-color:var(--accent);}
+  .list-search-wrap{position:relative; margin-bottom:12px;}
+  .list-search{margin:0;}
+  .suggest{
+    display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:20;
+    background:var(--bg3); border:1px solid var(--border); border-radius:10px;
+    overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.45);
+  }
+  .suggest.active{display:block;}
+  .suggest-item{
+    display:block; width:100%; text-align:left; background:transparent; border:0;
+    color:var(--text); padding:10px 14px; font-size:15px; cursor:pointer; margin:0;
+    border-bottom:1px solid var(--border); min-height:auto; border-radius:0;
+  }
+  .suggest-item:last-child{border-bottom:0;}
+  .suggest-item:hover,.suggest-item:focus{background:var(--bg2);}
   .row{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;}
   .row>div{flex:1; min-width:120px;}
   @media(max-width:480px){ .row{ gap:0; } .row>div{ flex:1 1 100%; min-width:0; } }
@@ -326,6 +341,10 @@
 
   <div class="card">
     <h2>📋 Liste</h2>
+    <div class="list-search-wrap">
+      <input type="search" id="list-search" class="list-search" placeholder="Suchen…" autocomplete="off">
+      <div id="list-search-suggest" class="suggest"></div>
+    </div>
     <div id="list"></div>
   </div>
 </div>
@@ -834,14 +853,36 @@ function buildEntryHtml(e, showActions){
   </div>`;
 }
 
+const SUCH_VORSCHLAEGE = ['Neukauf','Gebraucht','Gebrauchtkauf','Reparatur','Verzicht','Retoure','Wunsch'];
+
+function updateSearchSuggest(){
+  const box = document.getElementById('list-search-suggest');
+  const raw = (document.getElementById('list-search').value || '').trim();
+  const q = raw.toLowerCase();
+  if(!q){ box.innerHTML=''; box.classList.remove('active'); return; }
+  const treffer = SUCH_VORSCHLAEGE.filter(s => s.toLowerCase().includes(q)).slice(0,6);
+  if(!treffer.length){ box.innerHTML=''; box.classList.remove('active'); return; }
+  box.innerHTML = treffer.map(s => `<button type="button" class="suggest-item" data-v="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('');
+  box.classList.add('active');
+}
+
 function renderList(){
   const list = document.getElementById('list');
   if(!state.entscheidungen.length){
     list.innerHTML = '<div class="empty">Noch keine Einträge – füge deine erste Entscheidung hinzu. 💪</div>';
     return;
   }
+  const raw = (document.getElementById('list-search').value || '').trim();
+  const q = raw.toLowerCase();
   const sorted = [...state.entscheidungen].sort((a,b) => (b.jahr||0) - (a.jahr||0) || b.id - a.id);
-  list.innerHTML = sorted.map(e => buildEntryHtml(e, true)).join('');
+  const SUCH_ALIAS = { gebraucht: 'gebraucht gebrauchtkauf' };
+  const filtered = q ? sorted.filter(e => {
+    const t = TYPEN[e.typ];
+    return ((e.name || '') + ' ' + t.label + ' ' + (SUCH_ALIAS[e.typ] || '')).toLowerCase().includes(q);
+  }) : sorted;
+  list.innerHTML = filtered.length
+    ? filtered.map(e => buildEntryHtml(e, true)).join('')
+    : `<div class="empty">Keine Treffer für „${escapeHtml(raw)}“.</div>`;
 }
 
 function delEntry(id){
@@ -1459,6 +1500,19 @@ document.getElementById('reset').onclick = ()=>{
 };
 
 /* ============ INIT ============ */
+const SUCH_BOX = document.getElementById('list-search');
+const SUCH_SUGGEST = document.getElementById('list-search-suggest');
+SUCH_BOX.addEventListener('input', ()=>{ renderList(); updateSearchSuggest(); });
+SUCH_BOX.addEventListener('blur', ()=> setTimeout(()=>{ SUCH_SUGGEST.innerHTML=''; SUCH_SUGGEST.classList.remove('active'); }, 120));
+SUCH_BOX.addEventListener('keydown', e=>{ if(e.key==='Escape'){ SUCH_SUGGEST.classList.remove('active'); } });
+SUCH_SUGGEST.addEventListener('mousedown', e=>{
+  const btn = e.target.closest('.suggest-item');
+  if(!btn) return;
+  e.preventDefault();
+  SUCH_BOX.value = btn.dataset.v;
+  SUCH_SUGGEST.innerHTML=''; SUCH_SUGGEST.classList.remove('active');
+  renderList();
+});
 function renderAll(){ renderSummary(); renderList(); renderInventar(); renderJahre(); }
 loadSettings();
 resetForm();
