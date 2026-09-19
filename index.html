@@ -465,6 +465,27 @@ const fmt = (n,d=2) => n.toLocaleString('de-DE',{minimumFractionDigits:d,maximum
 const eur = n => fmt(n,2) + ' €';
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+/* NEU: Minuten-Anzeige */
+function zeitFormat(h){
+  if(!isFinite(h) || h <= 0) return '0 min';
+  const totalMin = Math.round(h * 60);
+  if(totalMin < 60) return `${totalMin} min`;
+  const std = Math.floor(totalMin / 60);
+  const min = totalMin % 60;
+  if(min === 0) return `${std} h`;
+  return `${std} h ${min} min`;
+}
+/* Kompakte Variante für Fließtext (ohne Leerzeichen um "h") */
+function zeitFormatShort(h){
+  if(!isFinite(h) || h <= 0) return '0 min';
+  const totalMin = Math.round(h * 60);
+  if(totalMin < 60) return `${totalMin} min`;
+  const std = Math.floor(totalMin / 60);
+  const min = totalMin % 60;
+  if(min === 0) return `${std} h`;
+  return `${std} h ${min} min`;
+}
+
 const TYPEN = {
   neukauf:   {label:'Neukauf',    klasse:'spend',   vergleichLabel:'Teurere Alternative (€)', hatJahre:true,  preisLabel:'Preis (€)'},
   gebraucht: {label:'Gebraucht',  klasse:'spend',   vergleichLabel:'Neupreis (€)',            hatJahre:true,  preisLabel:'Preis (€)'},
@@ -642,7 +663,7 @@ function renderPreview(){
   const istWunsch = typ === 'wunsch';
 
   const proMonatZeile = proMonat !== null
-    ? `<div class="line"><span>${istSpend ? 'Kosten pro Monat' : 'Gespart pro Monat'}</span><span>${fmt((proMonat/state.lohn)*60,1)} Min · ${eur(proMonat)}</span></div>` : '';
+    ? `<div class="line"><span>${istSpend ? 'Kosten pro Monat' : 'Gespart pro Monat'}</span><span>${zeitFormat(proMonat/state.lohn)} · ${eur(proMonat)}</span></div>` : '';
 
   let ziBlock;
   if(istSpend || istWunsch){
@@ -675,7 +696,7 @@ function renderPreview(){
 
   document.getElementById('preview').innerHTML = `
     <div class="title">👁️ Vorschau (${t.label})</div>
-    <div class="big ${cls}">${fmt(h,1)} h Arbeit</div>
+    <div class="big ${cls}">${zeitFormat(h)} Arbeit</div>
     <div class="subline">≈ ${fmt(tage,1)} Arbeitstage (à ${state.tag} h)</div>
     <hr>
     <div class="line strong"><span>${istRetoure ? 'Kaufpreis' : 'Preis'}</span><span>${eur(preis)}</span></div>
@@ -726,10 +747,10 @@ function buildEntryHtml(e, showActions){
   const proMonat = (t.hatJahre && e.jahre > 0) ? e.preis / (e.jahre * 12) : null;
 
   const yearTag = `<span class="badge">${e.jahr || CURRENT_YEAR}</span>`;
-  const preisZeile = `${eur(e.preis)}${vergleich > 0 ? ' statt ' + eur(vergleich) : ''} · <b>${fmt(h,1)} h</b> (${fmt(tage,1)} Tage)`;
+  const preisZeile = `${eur(e.preis)}${vergleich > 0 ? ' statt ' + eur(vergleich) : ''} · <b>${zeitFormat(h)}</b> (${fmt(tage,1)} Tage)`;
 
   const proMonatZeile = proMonat !== null
-    ? `<div class="meta">${istSpend ? 'Kosten' : 'Gespart'} ≈ ${eur(proMonat)} / Monat (${fmt((proMonat/state.lohn)*60,1)} Min)</div>` : '';
+    ? `<div class="meta">${istSpend ? 'Kosten' : 'Gespart'} ≈ ${eur(proMonat)} / Monat (${zeitFormat(proMonat/state.lohn)})</div>` : '';
 
   let ziZeile = (istSpend || istWunsch)
     ? `<div class="meta">Kostet Zukunfts-Ich: <span class="neg">${HORIZONTE.map(j=>`−${eur(zukunft(e.preis,j))} (${j} J.)`).join(' · ')}</span></div>`
@@ -834,10 +855,10 @@ function renderSummary(){
   document.getElementById('summary').innerHTML = `
     <h2>📊 Gesamt-Übersicht (alle Jahre)</h2>
     <div class="cols">
-      <div class="stat spend"><div class="lbl">Ausgegeben</div><div class="val">${eur(sumAus)}</div><div class="sub">${fmt(hAus,1)} h · ${aus.length} Käufe</div></div>
-      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${fmt(hSpa,1)} h · ${spa.length} Verzichte</div></div>
-      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${fmt(hRet,1)} h · ${ret.length} Retouren</div></div>
-      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${fmt(hVer,1)} h · ${ver.length} Verkäufe</div></div>
+      <div class="stat spend"><div class="lbl">Ausgegeben</div><div class="val">${eur(sumAus)}</div><div class="sub">${zeitFormat(hAus)} · ${aus.length} Käufe</div></div>
+      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${zeitFormat(hSpa)} · ${spa.length} Verzichte</div></div>
+      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${zeitFormat(hRet)} · ${ret.length} Retouren</div></div>
+      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${ver.length} Verkäufe</div></div>
       ${wunsch.length ? `<div class="stat warn"><div class="lbl">🕐 In Bedenkzeit</div><div class="val">${eur(wunsch.reduce((a,e)=>a+e.preis,0))}</div><div class="sub">${wunsch.length} offene Wünsche</div></div>` : ''}
     </div>
     <div class="balance">
@@ -951,7 +972,7 @@ function renderItemPreview(){
     const cls = h > 40 ? 'danger' : h > 15 ? 'warn' : '';
     const label = currentItemStatus === 'verkauft' ? 'Erlös' : 'Erwarteter Erlös';
 
-    html += `<div class="big ${cls}">${fmt(h,1)} h Arbeit</div>`;
+    html += `<div class="big ${cls}">${zeitFormat(h)} Arbeit</div>`;
     html += `<div class="subline">≈ ${fmt(tage,1)} Arbeitstage (à ${state.tag} h)</div><hr>`;
     html += `<div class="line strong"><span>${label}</span><span>${eur(wert)}</span></div>`;
     html += `<div class="line pos"><span>Bringt Zukunfts-Ich</span><span>${HORIZONTE.map(j=>`+${eur(zukunft(wert,j))} (${j} J.)`).join(' · ')}</span></div>`;
@@ -1026,8 +1047,8 @@ function renderInventar(){
     <h2>📦 Inventar-Übersicht</h2>
     <div class="cols">
       <div class="stat warn"><div class="lbl">Überfällig</div><div class="val ${ueberfaellig.length ? 'neg' : ''}">${ueberfaellig.length}</div><div class="sub">${ueberfaellig.length ? 'Deadline gerissen' : 'alles im Plan'}</div></div>
-      <div class="stat income"><div class="lbl">Verkaufspotenzial</div><div class="val">${eur(verkaufspotenzial)}</div><div class="sub">${zumVerkauf.length} Items · ${fmt(hPotenzial,1)} h</div></div>
-      <div class="stat save"><div class="lbl">Erlöse</div><div class="val">${eur(verkauftGesamt)}</div><div class="sub">${verkauftItems.length} Items · ${fmt(hVerkauft,1)} h</div></div>
+      <div class="stat income"><div class="lbl">Verkaufspotenzial</div><div class="val">${eur(verkaufspotenzial)}</div><div class="sub">${zumVerkauf.length} Items · ${zeitFormat(hPotenzial)}</div></div>
+      <div class="stat save"><div class="lbl">Erlöse</div><div class="val">${eur(verkauftGesamt)}</div><div class="sub">${verkauftItems.length} Items · ${zeitFormat(hVerkauft)}</div></div>
     </div>`;
 
   if(!state.inventar.length){
@@ -1190,10 +1211,10 @@ function renderJahre(){
   document.getElementById('jahre-summary').innerHTML = `
     <h2>${titel}</h2>
     <div class="cols">
-      <div class="stat spend"><div class="lbl">Ausgegeben</div><div class="val">${eur(sumAus)}</div><div class="sub">${fmt(hAus,1)} h · ${aus.length} Käufe</div></div>
-      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${fmt(hSpa,1)} h · ${spa.length} Verzichte</div></div>
-      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${fmt(hRet,1)} h · ${ret.length} Retouren</div></div>
-      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${fmt(hVer,1)} h · ${inventarVerkauftFilter.length} Verkäufe</div></div>
+      <div class="stat spend"><div class="lbl">Ausgegeben</div><div class="val">${eur(sumAus)}</div><div class="sub">${zeitFormat(hAus)} · ${aus.length} Käufe</div></div>
+      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${zeitFormat(hSpa)} · ${spa.length} Verzichte</div></div>
+      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${zeitFormat(hRet)} · ${ret.length} Retouren</div></div>
+      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${inventarVerkauftFilter.length} Verkäufe</div></div>
     </div>
     <div class="balance">
       <div class="lbl">Netto-Saldo Zukunfts-Ich (Verzicht + Retoure + Erlöse − Käufe)</div>
@@ -1235,7 +1256,7 @@ function renderJahre(){
         <div class="top">
           <div class="main">
             <div class="name">${escapeHtml(it.name)}<span class="badge income">Verkauf</span>${yearTag}</div>
-            <div class="meta">${eur(it.wert)} · <b>${fmt(h,1)} h</b> (${fmt(tage,1)} Tage)</div>
+            <div class="meta">${eur(it.wert)} · <b>${zeitFormat(h)}</b> (${fmt(tage,1)} Tage)</div>
             <div class="meta">Bringt Zukunfts-Ich: <span class="pos">${HORIZONTE.map(j=>`+${eur(zukunft(it.wert,j))} (${j} J.)`).join(' · ')}</span></div>
             ${zusatz}
           </div>
