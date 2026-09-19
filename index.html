@@ -465,11 +465,23 @@ const fmt = (n,d=2) => n.toLocaleString('de-DE',{minimumFractionDigits:d,maximum
 const eur = n => fmt(n,2) + ' €';
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* NEU: Minuten-Anzeige */
+/* NEU: Minuten-Anzeige – ab 24 h in Arbeitstage (à state.tag h) umgerechnet */
 function zeitFormat(h){
   if(!isFinite(h) || h <= 0) return '0 min';
   const totalMin = Math.round(h * 60);
   if(totalMin < 60) return `${totalMin} min`;
+  const tagH = Math.max(1, state.tag || 7);
+  if(totalMin >= 24 * 60){
+    const tagMin = Math.round(tagH * 60);
+    const tage = Math.floor(totalMin / tagMin);
+    const rest = totalMin - tage * tagMin;
+    const std = Math.floor(rest / 60);
+    const min = rest % 60;
+    const parts = [`${tage} Tag${tage === 1 ? '' : 'e'}`];
+    if(std > 0) parts.push(`${std} h`);
+    if(min > 0) parts.push(`${min} min`);
+    return parts.join(' ');
+  }
   const std = Math.floor(totalMin / 60);
   const min = totalMin % 60;
   if(min === 0) return `${std} h`;
@@ -480,6 +492,18 @@ function zeitFormatShort(h){
   if(!isFinite(h) || h <= 0) return '0 min';
   const totalMin = Math.round(h * 60);
   if(totalMin < 60) return `${totalMin} min`;
+  const tagH = Math.max(1, state.tag || 7);
+  if(totalMin >= 24 * 60){
+    const tagMin = Math.round(tagH * 60);
+    const tage = Math.floor(totalMin / tagMin);
+    const rest = totalMin - tage * tagMin;
+    const std = Math.floor(rest / 60);
+    const min = rest % 60;
+    const parts = [`${tage} Tag${tage === 1 ? '' : 'e'}`];
+    if(std > 0) parts.push(`${std} h`);
+    if(min > 0) parts.push(`${min} min`);
+    return parts.join(' ');
+  }
   const std = Math.floor(totalMin / 60);
   const min = totalMin % 60;
   if(min === 0) return `${std} h`;
