@@ -106,6 +106,9 @@
   .stat.save{border-left-color:var(--save);}
   .stat.retoure{border-left-color:var(--retoure);}
   .stat.warn{border-left-color:var(--warn);}
+  .stat.total{grid-column:1 / -1; background:linear-gradient(135deg, rgba(74,222,128,.14), rgba(74,222,128,.03));}
+  .stat.total .lbl{color:var(--save); font-size:.72rem;}
+  .stat.total .val{font-size:1.5rem;}
   .stat .lbl{font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-weight:600;}
   .stat .val{font-size:1.15rem; font-weight:700; margin:4px 0;}
   .stat .sub{font-size:.72rem; color:var(--muted); margin-bottom:2px;}
@@ -233,6 +236,7 @@
     .summary{ background:#fff; border:1px solid #ccc; color:#000; page-break-inside:avoid; }
     .stat{ background:#f5f5f5; border:1px solid #ddd; color:#000; }
     .stat.spend, .stat.income, .stat.save, .stat.retoure, .stat.warn{ border-left-width:3px; }
+    .stat.total{ background:#f5f5f5; }
     .stat .lbl, .stat .sub, .balance .lbl, .balance .cell .h{ color:#666; }
     .stat .val, .balance .cell .v{ color:#000; }
     .balance .cell{ background:#f5f5f5; border:1px solid #ddd; color:#000; }
@@ -463,6 +467,7 @@ function save(){ localStorage.setItem('frugal', JSON.stringify(state)); }
 /* ============ HELPERS ============ */
 const fmt = (n,d=2) => n.toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
 const eur = n => fmt(n,2) + ' €';
+const cnt = (n, ein, viele) => n + ' ' + (n === 1 ? ein : viele);
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 /* NEU: Minuten-Anzeige – ab 24 h in Arbeitstage (à state.tag h) umgerechnet */
@@ -777,7 +782,7 @@ function buildEntryHtml(e, showActions){
     ? `<div class="meta">${istSpend ? 'Kosten' : 'Gespart'} ≈ ${eur(proMonat)} / Monat (${zeitFormat(proMonat/state.lohn)})</div>` : '';
 
   let ziZeile = (istSpend || istWunsch)
-    ? `<div class="meta">Kostet Zukunfts-Ich: <span class="neg">${HORIZONTE.map(j=>`−${eur(zukunft(e.preis,j))} (${j} J.)`).join(' · ')}</span></div>`
+    ? ''
     : `<div class="meta">Bringt Zukunfts-Ich: <span class="pos">${HORIZONTE.map(j=>`+${eur(zukunft(e.preis,j))} (${j} J.)`).join(' · ')}</span></div>`;
 
   let extraZeile = '';
@@ -862,31 +867,43 @@ function renderSummary(){
   const wunsch = state.entscheidungen.filter(e=>e.typ==='wunsch');
   const ver = state.inventar.filter(it=>it.status==='verkauft');
 
-  const sumAus = aus.reduce((a,e)=>a+e.preis,0);
+  const ers = aus.filter(e=>(e.typ==='reparatur' || e.typ==='gebraucht') && e.vergleich > e.preis);
+  const rep = aus.filter(e=>e.typ==='reparatur' && e.vergleich > e.preis);
+  const geb = aus.filter(e=>e.typ==='gebraucht' && e.vergleich > e.preis);
+  const sumAus = aus.reduce((a,e)=>a + e.preis, 0);
+  const sumRep = rep.reduce((a,e)=>a + (e.vergleich - e.preis), 0);
+  const sumGeb = geb.reduce((a,e)=>a + (e.vergleich - e.preis), 0);
+  const sumErs = sumRep + sumGeb;
   const sumSpa = spa.reduce((a,e)=>a+e.preis,0);
   const sumRet = ret.reduce((a,e)=>a+e.preis,0);
   const sumVer = ver.reduce((a,it)=>a+(it.wert||0),0);
-  const sumGespart = sumSpa + sumRet;
-  const hAus = sumAus / state.lohn, hSpa = sumSpa / state.lohn, hRet = sumRet / state.lohn, hVer = sumVer / state.lohn;
+  const sumGespart = sumSpa + sumErs + sumRet;
+  const sumGesamt = sumGespart + sumVer;
+  const hRep = sumRep / state.lohn, hGeb = sumGeb / state.lohn;
+  const hSpa = sumSpa / state.lohn, hRet = sumRet / state.lohn, hVer = sumVer / state.lohn, hGesamt = sumGesamt / state.lohn;
+  const anzGesamt = spa.length + ers.length + ret.length + ver.length;
 
-  const salden = HORIZONTE.map(j=>({j, s: zukunft(sumGespart + sumVer, j) - zukunft(sumAus, j)}));
+  const salden = HORIZONTE.map(j=>({j, s: zukunft(sumGesamt, j)}));
   const saldoCells = salden.map(x=>`
     <div class="cell">
       <div class="h">${x.j} J.</div>
-      <div class="v ${x.s >= 0 ? 'pos' : 'neg'}">${x.s >= 0 ? '+' : '−'}${eur(Math.abs(x.s))}</div>
+      <div class="v pos">+${eur(x.s)}</div>
     </div>`).join('');
 
   document.getElementById('summary').innerHTML = `
     <h2>📊 Gesamt-Übersicht (alle Jahre)</h2>
     <div class="cols">
-      <div class="stat spend"><div class="lbl">Ausgegeben</div><div class="val">${eur(sumAus)}</div><div class="sub">${zeitFormat(hAus)} · ${aus.length} Käufe</div></div>
-      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${zeitFormat(hSpa)} · ${spa.length} Verzichte</div></div>
-      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${zeitFormat(hRet)} · ${ret.length} Retouren</div></div>
-      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${ver.length} Verkäufe</div></div>
-      ${wunsch.length ? `<div class="stat warn"><div class="lbl">🕐 In Bedenkzeit</div><div class="val">${eur(wunsch.reduce((a,e)=>a+e.preis,0))}</div><div class="sub">${wunsch.length} offene Wünsche</div></div>` : ''}
+      <div class="stat save total"><div class="lbl">💰 Gesamtersparnis</div><div class="val">${eur(sumGesamt)}</div><div class="sub">${zeitFormat(hGesamt)} · ${cnt(anzGesamt,'Ersparnis','Ersparnisse')}</div></div>
+      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${zeitFormat(hSpa)} · ${cnt(spa.length,'Verzicht','Verzichte')}</div></div>
+      <div class="stat save"><div class="lbl">Reparatur</div><div class="val">${eur(sumRep)}</div><div class="sub">${zeitFormat(hRep)} · ${cnt(rep.length,'Reparatur','Reparaturen')}</div></div>
+      <div class="stat save"><div class="lbl">Gebrauchtkauf</div><div class="val">${eur(sumGeb)}</div><div class="sub">${zeitFormat(hGeb)} · ${cnt(geb.length,'Gebrauchtkauf','Gebrauchtkäufe')}</div></div>
+      <div class="stat spend"><div class="lbl">Gesamtausgaben</div><div class="val">${eur(sumAus)}</div><div class="sub">${cnt(aus.length,'Ausgabe','Ausgaben')}</div></div>
+      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${zeitFormat(hRet)} · ${cnt(ret.length,'Retoure','Retouren')}</div></div>
+      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${cnt(ver.length,'Verkauf','Verkäufe')}</div></div>
+      ${wunsch.length ? `<div class="stat warn"><div class="lbl">🕐 In Bedenkzeit</div><div class="val">${eur(wunsch.reduce((a,e)=>a+e.preis,0))}</div><div class="sub">${cnt(wunsch.length,'offener Wunsch','offene Wünsche')}</div></div>` : ''}
     </div>
     <div class="balance">
-      <div class="lbl">Netto-Saldo Zukunfts-Ich (Verzicht + Retoure + Erlöse − Käufe)</div>
+      <div class="lbl">Ersparnis-Bilanz Zukunfts-Ich</div>
       <div class="grid">${saldoCells}</div>
     </div>`;
 }
@@ -1212,22 +1229,32 @@ function renderJahre(){
   const spa = entscheidungenFilter.filter(e => TYPEN[e.typ].klasse === 'save');
   const ret = entscheidungenFilter.filter(e => TYPEN[e.typ].klasse === 'retoure');
 
-  const sumAus = aus.reduce((a,e)=>a+e.preis,0);
+  const ers = aus.filter(e=>(e.typ==='reparatur' || e.typ==='gebraucht') && e.vergleich > e.preis);
+  const rep = aus.filter(e=>e.typ==='reparatur' && e.vergleich > e.preis);
+  const geb = aus.filter(e=>e.typ==='gebraucht' && e.vergleich > e.preis);
+  const sumAus = aus.reduce((a,e)=>a + e.preis, 0);
+  const sumRep = rep.reduce((a,e)=>a + (e.vergleich - e.preis), 0);
+  const sumGeb = geb.reduce((a,e)=>a + (e.vergleich - e.preis), 0);
+  const sumErs = sumRep + sumGeb;
   const sumSpa = spa.reduce((a,e)=>a+e.preis,0);
   const sumRet = ret.reduce((a,e)=>a+e.preis,0);
   const sumVer = inventarVerkauftFilter.reduce((a,it)=>a+(it.wert||0),0);
-  const sumGespart = sumSpa + sumRet;
+  const sumGespart = sumSpa + sumErs + sumRet;
+  const sumGesamt = sumGespart + sumVer;
 
-  const hAus = sumAus / state.lohn;
+  const hRep = sumRep / state.lohn;
+  const hGeb = sumGeb / state.lohn;
   const hSpa = sumSpa / state.lohn;
   const hRet = sumRet / state.lohn;
   const hVer = sumVer / state.lohn;
+  const hGesamt = sumGesamt / state.lohn;
+  const anzGesamt = spa.length + ers.length + ret.length + inventarVerkauftFilter.length;
 
-  const salden = HORIZONTE.map(j=>({j, s: zukunft(sumGespart + sumVer, j) - zukunft(sumAus, j)}));
+  const salden = HORIZONTE.map(j=>({j, s: zukunft(sumGesamt, j)}));
   const saldoCells = salden.map(x=>`
     <div class="cell">
       <div class="h">${x.j} J.</div>
-      <div class="v ${x.s >= 0 ? 'pos' : 'neg'}">${x.s >= 0 ? '+' : '−'}${eur(Math.abs(x.s))}</div>
+      <div class="v pos">+${eur(x.s)}</div>
     </div>`).join('');
 
   const titel = isGesamt ? '📅 Gesamt (alle Jahre)' : `📅 ${currentYear}`;
@@ -1235,13 +1262,16 @@ function renderJahre(){
   document.getElementById('jahre-summary').innerHTML = `
     <h2>${titel}</h2>
     <div class="cols">
-      <div class="stat spend"><div class="lbl">Ausgegeben</div><div class="val">${eur(sumAus)}</div><div class="sub">${zeitFormat(hAus)} · ${aus.length} Käufe</div></div>
-      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${zeitFormat(hSpa)} · ${spa.length} Verzichte</div></div>
-      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${zeitFormat(hRet)} · ${ret.length} Retouren</div></div>
-      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${inventarVerkauftFilter.length} Verkäufe</div></div>
+      <div class="stat save total"><div class="lbl">💰 Gesamtersparnis</div><div class="val">${eur(sumGesamt)}</div><div class="sub">${zeitFormat(hGesamt)} · ${cnt(anzGesamt,'Ersparnis','Ersparnisse')}</div></div>
+      <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${zeitFormat(hSpa)} · ${cnt(spa.length,'Verzicht','Verzichte')}</div></div>
+      <div class="stat save"><div class="lbl">Reparatur</div><div class="val">${eur(sumRep)}</div><div class="sub">${zeitFormat(hRep)} · ${cnt(rep.length,'Reparatur','Reparaturen')}</div></div>
+      <div class="stat save"><div class="lbl">Gebrauchtkauf</div><div class="val">${eur(sumGeb)}</div><div class="sub">${zeitFormat(hGeb)} · ${cnt(geb.length,'Gebrauchtkauf','Gebrauchtkäufe')}</div></div>
+      <div class="stat spend"><div class="lbl">Gesamtausgaben</div><div class="val">${eur(sumAus)}</div><div class="sub">${cnt(aus.length,'Ausgabe','Ausgaben')}</div></div>
+      <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${zeitFormat(hRet)} · ${cnt(ret.length,'Retoure','Retouren')}</div></div>
+      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${cnt(inventarVerkauftFilter.length,'Verkauf','Verkäufe')}</div></div>
     </div>
     <div class="balance">
-      <div class="lbl">Netto-Saldo Zukunfts-Ich (Verzicht + Retoure + Erlöse − Käufe)</div>
+      <div class="lbl">Ersparnis-Bilanz Zukunfts-Ich</div>
       <div class="grid">${saldoCells}</div>
     </div>`;
 
