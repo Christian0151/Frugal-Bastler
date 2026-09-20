@@ -902,11 +902,12 @@ function resolveWunsch(id, outcome){
 }
 
 function renderSummary(){
-  const aus = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='spend');
-  const spa = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='save');
-  const ret = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='retoure');
-  const wunsch = state.entscheidungen.filter(e=>e.typ==='wunsch');
-  const ver = state.inventar.filter(it=>it.status==='verkauft');
+  const imJahr = e => (+e.jahr || CURRENT_YEAR) === CURRENT_YEAR;
+  const aus = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='spend' && imJahr(e));
+  const spa = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='save' && imJahr(e));
+  const ret = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='retoure' && imJahr(e));
+  const wunsch = state.entscheidungen.filter(e=>e.typ==='wunsch' && imJahr(e));
+  const ver = state.inventar.filter(it=>it.status==='verkauft' && (+it.jahr || CURRENT_YEAR) === CURRENT_YEAR);
 
   const ers = aus.filter(e=>(e.typ==='reparatur' || e.typ==='gebraucht') && e.vergleich > e.preis);
   const rep = aus.filter(e=>e.typ==='reparatur' && e.vergleich > e.preis);
@@ -932,7 +933,7 @@ function renderSummary(){
     </div>`).join('');
 
   document.getElementById('summary').innerHTML = `
-    <h2>📊 Gesamt-Übersicht (alle Jahre)</h2>
+    <h2>📊 Gesamt-Übersicht ${CURRENT_YEAR}</h2>
     <div class="cols">
       <div class="stat save total"><div class="lbl">💰 Gesamtersparnis</div><div class="val">${eur(sumGesamt)}</div><div class="sub">${zeitFormat(hGesamt)} · ${cnt(anzGesamt,'Ersparnis','Ersparnisse')}</div></div>
       <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${zeitFormat(hSpa)} · ${cnt(spa.length,'Verzicht','Verzichte')}</div></div>
