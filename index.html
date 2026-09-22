@@ -498,7 +498,7 @@
 
     <hr>
     <h2>💼 Stundenlohn-Rechner</h2>
-    <p class="muted" style="margin-bottom:10px;">Wenn du deinen Stundenlohn nicht direkt kennst: Monatsstunden & Nettolohn eingeben – wird automatisch umgerechnet.</p>
+    <p class="muted" style="margin-bottom:10px;">Wenn du deinen Stundenlohn nicht direkt kennst: Monatsstunden &amp; Nettolohn eingeben – wird automatisch umgerechnet.</p>
     <div class="row">
       <div>
         <label>Monatsstunden (h)</label>
@@ -600,9 +600,6 @@ function rentenEndwert(jahresZahlung, jahre){
 
 function aboKlasse(e){
   return e.aboStatus === 'gekuendigt' ? 'abo-gekuendigt' : 'abo';
-}
-function aboLabel(e){
-  return e.aboStatus === 'gekuendigt' ? 'Abo gekündigt' : 'Abo läuft';
 }
 
 function tageBis(fristStr){
@@ -1110,7 +1107,7 @@ function renderList(){
   const SUCH_ALIAS = { gebraucht: 'gebraucht gebrauchtkauf' };
   const filtered = q ? sorted.filter(e => {
     const t = TYPEN[e.typ];
-    const extra = e.typ === 'abo' ? 'abo abo laufend gekuendigt monatlich' : '';
+    const extra = e.typ === 'abo' ? 'abo laufend gekuendigt monatlich' : '';
     return ((e.name || '') + ' ' + t.label + ' ' + (SUCH_ALIAS[e.typ] || '') + ' ' + extra).toLowerCase().includes(q);
   }) : sorted;
   list.innerHTML = filtered.length
@@ -1135,10 +1132,9 @@ function resolveWunsch(id, outcome){
 }
 
 /* ==================================================================
-   SUMMARY: Abos pro Jahr einbeziehen
+   ABO-HILFE für Jahres-Ansicht
    ================================================================== */
 function aboWerteFuerJahr(jahr){
-  /* liefert { ausgaben, ersparnisse, vorteil } für ein bestimmtes Jahr */
   let ausgaben = 0, ersparnisse = 0;
   state.entscheidungen.forEach(e=>{
     if(e.typ !== 'abo') return;
@@ -1153,7 +1149,7 @@ function aboWerteFuerJahr(jahr){
       }
     }
   });
-  return { ausgaben, ersparnisse, vorteil: ersparnisse };
+  return { ausgaben, ersparnisse };
 }
 
 function renderSummary(){
@@ -1549,7 +1545,6 @@ function renderJahre(){
     inventarVerkauftFilter = state.inventar.filter(it => it.status === 'verkauft' && (+it.jahr || CURRENT_YEAR) === currentYear);
   }
 
-  /* Abos in Ausgaben/Ersparnisse aufteilen (nur wenn Einzeljahr) */
   const abosJahr = isGesamt ? {ausgaben:0, ersparnisse:0} : aboWerteFuerJahr(currentYear);
 
   const aus = entscheidungenFilter.filter(e => e.typ !== 'abo' && TYPEN[e.typ].klasse === 'spend');
