@@ -105,6 +105,8 @@
   button.status-btn.active.projekt{background:#a78bfa; border-color:#a78bfa; color:#0f1115;}
   button.status-btn.active.verkaufen{background:var(--warn); border-color:var(--warn); color:#0f1115;}
   button.status-btn.active.verkauft{background:var(--accent); border-color:var(--accent); color:#0f1115;}
+  button.status-btn.active.abo-laeuft{background:var(--danger); border-color:var(--danger); color:#fff;}
+  button.status-btn.active.abo-gekuendigt{background:var(--accent); border-color:var(--accent); color:#0f1115;}
   .status-row{display:flex; gap:6px; margin-top:6px;}
   #f-save, #f-cancel, #i-save, #i-cancel{ width:100%; }
   @media(min-width:600px){ #f-save, #f-cancel, #i-save, #i-cancel{ width:auto; } }
@@ -157,6 +159,7 @@
   .preview .line.pos span:last-child{color:var(--save);}
   .preview .line.strong span:first-child{color:var(--text); font-weight:500;}
   .preview hr{border:none; border-top:1px solid var(--border); margin:10px 0;}
+  .preview .hint{font-size:.75rem; color:var(--muted); margin-top:8px; line-height:1.5;}
 
   .entry{
     background:var(--bg3); border-radius:12px; padding:12px; margin-bottom:8px;
@@ -167,6 +170,8 @@
   .entry.save{border-left-color:var(--save);}
   .entry.retoure{border-left-color:var(--retoure);}
   .entry.wunsch{border-left-color:#38bdf8;}
+  .entry.abo{border-left-color:var(--danger);}
+  .entry.abo-gekuendigt{border-left-color:var(--accent);}
   .entry.overdue{border-left-color:var(--danger); background:linear-gradient(90deg,#2a1a1a,var(--bg3) 40%);}
   .entry.soon{border-left-color:var(--warn); background:linear-gradient(90deg,#2a241a,var(--bg3) 40%);}
   .entry.done{opacity:.65;}
@@ -199,6 +204,8 @@
   .badge.projekt{color:#a78bfa; border-color:#3a2c5a;}
   .badge.verkaufen{color:var(--warn); border-color:#5a4a1c;}
   .badge.verkauft{color:var(--accent2); border-color:#1e4a5a;}
+  .badge.abo{color:var(--danger); border-color:#5a2c2c;}
+  .badge.abo-gekuendigt{color:var(--save); border-color:#2c5a34;}
   hr{border:none; border-top:1px solid var(--border); margin:12px 0;}
   .empty{color:var(--muted); font-size:.85rem; text-align:center; padding:24px 0;}
   .chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
@@ -213,7 +220,6 @@
   .toolbar{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;}
   .toolbar button{flex:1; min-width:120px; margin:0;}
 
-  /* Inventar-Liste im Jahres-Tab */
   .inv-row{
     display:grid;
     grid-template-columns:1fr auto;
@@ -298,36 +304,72 @@
           <option value="verzicht">Verzicht (Ersparnis)</option>
           <option value="retoure">Retoure (Ersparnis)</option>
           <option value="wunsch">Wunsch (Bedenkzeit)</option>
+          <option value="abo">Abo (monatlich)</option>
         </select>
       </div>
     </div>
 
-    <div class="row">
-      <div>
-        <label id="preis-label">Preis (€)</label>
-        <input type="number" id="f-preis" value="35" min="0" step="1" inputmode="decimal">
+    <!-- Standard-Felder (nicht-Abo) -->
+    <div id="f-standard-fields">
+      <div class="row">
+        <div>
+          <label id="preis-label">Preis (€)</label>
+          <input type="number" id="f-preis" value="35" min="0" step="1" inputmode="decimal">
+        </div>
+        <div>
+          <label>Jahr</label>
+          <input type="number" id="f-jahr" min="2000" max="2100" step="1" inputmode="numeric">
+        </div>
       </div>
-      <div>
-        <label>Jahr</label>
-        <input type="number" id="f-jahr" min="2000" max="2100" step="1" inputmode="numeric">
+
+      <div class="field" id="vergleich-wrap">
+        <label id="vergleich-label">Vergleichspreis (€) <span class="opt">optional</span></label>
+        <input type="number" id="f-vergleich" value="" min="0" step="1" inputmode="decimal" placeholder="z.B. 143">
+      </div>
+
+      <div class="field" id="jahre-wrap">
+        <label id="jahre-label">Nutzungsdauer (Jahre)</label>
+        <input type="number" id="f-jahre" value="5" min="0" step="0.5" inputmode="decimal">
+        <div class="chips" id="nutzungsdauer-chips">
+          <button type="button" class="chip" data-j="1">1 J.</button>
+          <button type="button" class="chip" data-j="3">3 J.</button>
+          <button type="button" class="chip" data-j="5">5 J.</button>
+          <button type="button" class="chip" data-j="10">10 J.</button>
+          <button type="button" class="chip" data-j="20">20 J.</button>
+          <button type="button" class="chip" data-j="0">∞</button>
+        </div>
       </div>
     </div>
 
-    <div class="field" id="vergleich-wrap">
-      <label id="vergleich-label">Vergleichspreis (€) <span class="opt">optional</span></label>
-      <input type="number" id="f-vergleich" value="" min="0" step="1" inputmode="decimal" placeholder="z.B. 143">
-    </div>
-
-    <div class="field" id="jahre-wrap">
-      <label id="jahre-label">Nutzungsdauer (Jahre)</label>
-      <input type="number" id="f-jahre" value="5" min="0" step="0.5" inputmode="decimal">
-      <div class="chips" id="nutzungsdauer-chips">
-        <button type="button" class="chip" data-j="1">1 J.</button>
-        <button type="button" class="chip" data-j="3">3 J.</button>
-        <button type="button" class="chip" data-j="5">5 J.</button>
-        <button type="button" class="chip" data-j="10">10 J.</button>
-        <button type="button" class="chip" data-j="20">20 J.</button>
-        <button type="button" class="chip" data-j="0">∞</button>
+    <!-- Abo-Felder -->
+    <div id="f-abo-fields" style="display:none;">
+      <div class="row">
+        <div>
+          <label>Monatlich (€)</label>
+          <input type="number" id="f-abo-monatlich" value="13" min="0" step="0.5" inputmode="decimal">
+        </div>
+        <div>
+          <label>Zeitraum (Jahre)</label>
+          <input type="number" id="f-abo-zeitraum" value="10" min="1" step="1" inputmode="numeric">
+        </div>
+        <div>
+          <label>Jahr</label>
+          <input type="number" id="f-abo-jahr" min="2000" max="2100" step="1" inputmode="numeric">
+        </div>
+      </div>
+      <div class="chips" id="abo-zeitraum-chips">
+        <button type="button" class="chip" data-z="1">1 J.</button>
+        <button type="button" class="chip" data-z="3">3 J.</button>
+        <button type="button" class="chip" data-z="5">5 J.</button>
+        <button type="button" class="chip" data-z="10">10 J.</button>
+        <button type="button" class="chip" data-z="20">20 J.</button>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <div class="status-row" id="f-abo-status-row">
+          <button type="button" class="status-btn abo-laeuft active" data-abo-status="laeuft">🔴 Läuft</button>
+          <button type="button" class="status-btn abo-gekuendigt" data-abo-status="gekuendigt">✅ Gekündigt</button>
+        </div>
       </div>
     </div>
 
@@ -453,6 +495,22 @@
         <input type="number" id="s-rendite" value="7" min="0" step="0.1" inputmode="decimal">
       </div>
     </div>
+
+    <hr>
+    <h2>💼 Stundenlohn-Rechner</h2>
+    <p class="muted" style="margin-bottom:10px;">Wenn du deinen Stundenlohn nicht direkt kennst: Monatsstunden & Nettolohn eingeben – wird automatisch umgerechnet.</p>
+    <div class="row">
+      <div>
+        <label>Monatsstunden (h)</label>
+        <input type="number" id="s-monat-h" value="160" min="1" step="1" inputmode="decimal">
+      </div>
+      <div>
+        <label>Netto-Verdienst (€/Monat)</label>
+        <input type="number" id="s-netto-monat" value="3520" min="1" step="1" inputmode="decimal">
+      </div>
+    </div>
+    <div class="muted" id="lohn-hint" style="margin-top:8px;"></div>
+
     <hr>
     <h2>💾 Daten</h2>
     <button class="ghost" id="export">Export (JSON)</button>
@@ -471,6 +529,7 @@ let state = load();
 let editingId = null;
 let editingItemId = null;
 let currentItemStatus = 'verkaufen';
+let currentAboStatus = 'laeuft';
 let currentYear = 'all';
 
 function load(){
@@ -489,30 +548,7 @@ const eur = n => fmt(n,2) + ' €';
 const cnt = (n, ein, viele) => n + ' ' + (n === 1 ? ein : viele);
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* NEU: Minuten-Anzeige – ab 24 h in Arbeitstage (à state.tag h) umgerechnet */
 function zeitFormat(h){
-  if(!isFinite(h) || h <= 0) return '0 min';
-  const totalMin = Math.round(h * 60);
-  if(totalMin < 60) return `${totalMin} min`;
-  const tagH = Math.max(1, state.tag || 7);
-  if(totalMin >= 24 * 60){
-    const tagMin = Math.round(tagH * 60);
-    const tage = Math.floor(totalMin / tagMin);
-    const rest = totalMin - tage * tagMin;
-    const std = Math.floor(rest / 60);
-    const min = rest % 60;
-    const parts = [`${tage} Tag${tage === 1 ? '' : 'e'}`];
-    if(std > 0) parts.push(`${std} h`);
-    if(min > 0) parts.push(`${min} min`);
-    return parts.join(' ');
-  }
-  const std = Math.floor(totalMin / 60);
-  const min = totalMin % 60;
-  if(min === 0) return `${std} h`;
-  return `${std} h ${min} min`;
-}
-/* Kompakte Variante für Fließtext (ohne Leerzeichen um "h") */
-function zeitFormatShort(h){
   if(!isFinite(h) || h <= 0) return '0 min';
   const totalMin = Math.round(h * 60);
   if(totalMin < 60) return `${totalMin} min`;
@@ -535,12 +571,13 @@ function zeitFormatShort(h){
 }
 
 const TYPEN = {
-  neukauf:   {label:'Neukauf',    klasse:'spend',   vergleichLabel:'Teurere Alternative (€)', hatJahre:true,  preisLabel:'Preis (€)'},
-  gebraucht: {label:'Gebraucht',  klasse:'spend',   vergleichLabel:'Neupreis (€)',            hatJahre:true,  preisLabel:'Preis (€)'},
-  reparatur: {label:'Reparatur',  klasse:'spend',   vergleichLabel:'Neupreis (€)',            hatJahre:true,  preisLabel:'Reparatur-Kosten (€)'},
-  verzicht:  {label:'Verzicht',   klasse:'save',    vergleichLabel:null,                       hatJahre:true,  preisLabel:'Hätte gekostet (€)'},
-  retoure:   {label:'Retoure',    klasse:'retoure', vergleichLabel:null,                       hatJahre:false, preisLabel:'Kaufpreis (€)'},
-  wunsch:    {label:'Wunsch',     klasse:'wunsch',  vergleichLabel:null,                       hatJahre:false, preisLabel:'Preis (€)'}
+  neukauf:      {label:'Neukauf',    klasse:'spend',          vergleichLabel:'Teurere Alternative (€)', hatJahre:true,  preisLabel:'Preis (€)',            istAbo:false},
+  gebraucht:    {label:'Gebraucht',  klasse:'spend',          vergleichLabel:'Neupreis (€)',            hatJahre:true,  preisLabel:'Preis (€)',            istAbo:false},
+  reparatur:    {label:'Reparatur',  klasse:'spend',          vergleichLabel:'Neupreis (€)',            hatJahre:true,  preisLabel:'Reparatur-Kosten (€)', istAbo:false},
+  verzicht:     {label:'Verzicht',   klasse:'save',           vergleichLabel:null,                       hatJahre:true,  preisLabel:'Hätte gekostet (€)',   istAbo:false},
+  retoure:      {label:'Retoure',    klasse:'retoure',        vergleichLabel:null,                       hatJahre:false, preisLabel:'Kaufpreis (€)',        istAbo:false},
+  wunsch:       {label:'Wunsch',     klasse:'wunsch',         vergleichLabel:null,                       hatJahre:false, preisLabel:'Preis (€)',            istAbo:false},
+  abo:          {label:'Abo',        klasse:'abo',            vergleichLabel:null,                       hatJahre:false, preisLabel:'Monatlich (€)',        istAbo:true}
 };
 
 const ITEM_STATUS = {
@@ -553,6 +590,20 @@ const ITEM_STATUS = {
 const HORIZONTE = [5, 10, 20];
 
 function zukunft(preis, jahre){ return preis * Math.pow(1 + state.rendite/100, jahre); }
+
+/* Rentenformel: Endwert jährlicher Zahlungen (nachschüssig) */
+function rentenEndwert(jahresZahlung, jahre){
+  const r = state.rendite/100;
+  if(r === 0) return jahresZahlung * jahre;
+  return jahresZahlung * ((Math.pow(1+r, jahre) - 1) / r);
+}
+
+function aboKlasse(e){
+  return e.aboStatus === 'gekuendigt' ? 'abo-gekuendigt' : 'abo';
+}
+function aboLabel(e){
+  return e.aboStatus === 'gekuendigt' ? 'Abo gekündigt' : 'Abo läuft';
+}
 
 function tageBis(fristStr){
   if(!fristStr) return null;
@@ -598,7 +649,15 @@ function kaufFristLabel(fristStr){
 
 function getAllYears(){
   const years = new Set();
-  state.entscheidungen.forEach(e => years.add(+e.jahr || CURRENT_YEAR));
+  state.entscheidungen.forEach(e => {
+    if(e.typ === 'abo'){
+      const start = +e.jahr || CURRENT_YEAR;
+      const n = +e.zeitraum || 10;
+      for(let i = 0; i < n; i++) years.add(start + i);
+    } else {
+      years.add(+e.jahr || CURRENT_YEAR);
+    }
+  });
   state.inventar.forEach(it => {
     if(it.status === 'verkauft') years.add(+it.jahr || CURRENT_YEAR);
   });
@@ -623,6 +682,13 @@ document.querySelectorAll('.tab').forEach(t=>{
 function updateFormLabels(){
   const typ = document.getElementById('f-typ').value;
   const t = TYPEN[typ];
+  const istAbo = t.istAbo;
+
+  document.getElementById('f-standard-fields').style.display = istAbo ? 'none' : 'block';
+  document.getElementById('f-abo-fields').style.display = istAbo ? 'block' : 'none';
+
+  if(istAbo) return;
+
   document.getElementById('preis-label').textContent = t.preisLabel;
   document.getElementById('jahre-wrap').style.display = t.hatJahre ? 'block' : 'none';
   if(t.hatJahre){
@@ -648,10 +714,34 @@ function syncJahreChips(){
   });
 }
 
+function syncAboZeitraumChips(){
+  const z = +document.getElementById('f-abo-zeitraum').value;
+  document.querySelectorAll('#abo-zeitraum-chips .chip').forEach(c=>{
+    c.classList.toggle('active', +c.dataset.z === z);
+  });
+}
+
 document.querySelectorAll('#nutzungsdauer-chips .chip').forEach(c=>{
   c.onclick = ()=>{
     document.getElementById('f-jahre').value = c.dataset.j;
     syncJahreChips(); renderPreview();
+  };
+});
+
+document.querySelectorAll('#abo-zeitraum-chips .chip').forEach(c=>{
+  c.onclick = ()=>{
+    document.getElementById('f-abo-zeitraum').value = c.dataset.z;
+    syncAboZeitraumChips(); renderPreview();
+  };
+});
+
+document.querySelectorAll('#f-abo-status-row .status-btn').forEach(b=>{
+  b.onclick = ()=>{
+    currentAboStatus = b.dataset.aboStatus;
+    document.querySelectorAll('#f-abo-status-row .status-btn').forEach(x=>{
+      x.classList.toggle('active', x.dataset.aboStatus === currentAboStatus);
+    });
+    renderPreview();
   };
 });
 
@@ -663,10 +753,17 @@ function resetForm(){
   document.getElementById('f-typ').value = 'neukauf';
   document.getElementById('f-vergleich').value = '';
   document.getElementById('f-jahre').value = 5;
+  document.getElementById('f-abo-monatlich').value = 13;
+  document.getElementById('f-abo-zeitraum').value = 10;
+  document.getElementById('f-abo-jahr').value = CURRENT_YEAR;
+  currentAboStatus = 'laeuft';
+  document.querySelectorAll('#f-abo-status-row .status-btn').forEach(x=>{
+    x.classList.toggle('active', x.dataset.aboStatus === 'laeuft');
+  });
   document.getElementById('form-title').textContent = '➕ Neue Entscheidung';
   document.getElementById('f-save').textContent = 'Hinzufügen';
   document.getElementById('f-cancel').style.display = 'none';
-  updateFormLabels(); syncJahreChips(); renderPreview();
+  updateFormLabels(); syncJahreChips(); syncAboZeitraumChips(); renderPreview();
 }
 
 function startEdit(id){
@@ -674,15 +771,27 @@ function startEdit(id){
   if(!e) return;
   editingId = id;
   document.getElementById('f-name').value = e.name;
-  document.getElementById('f-preis').value = e.preis;
-  document.getElementById('f-jahr').value = e.jahr || CURRENT_YEAR;
   document.getElementById('f-typ').value = e.typ;
-  document.getElementById('f-vergleich').value = e.vergleich || '';
-  document.getElementById('f-jahre').value = e.jahre || 5;
+
+  if(e.typ === 'abo'){
+    document.getElementById('f-abo-monatlich').value = e.monatlich;
+    document.getElementById('f-abo-zeitraum').value = e.zeitraum;
+    document.getElementById('f-abo-jahr').value = e.jahr || CURRENT_YEAR;
+    currentAboStatus = e.aboStatus || 'laeuft';
+    document.querySelectorAll('#f-abo-status-row .status-btn').forEach(x=>{
+      x.classList.toggle('active', x.dataset.aboStatus === currentAboStatus);
+    });
+  } else {
+    document.getElementById('f-preis').value = e.preis;
+    document.getElementById('f-jahr').value = e.jahr || CURRENT_YEAR;
+    document.getElementById('f-vergleich').value = e.vergleich || '';
+    document.getElementById('f-jahre').value = e.jahre || 5;
+  }
+
   document.getElementById('form-title').textContent = '✏️ Bearbeiten';
   document.getElementById('f-save').textContent = 'Aktualisieren';
   document.getElementById('f-cancel').style.display = 'inline-block';
-  updateFormLabels(); syncJahreChips(); renderPreview();
+  updateFormLabels(); syncJahreChips(); syncAboZeitraumChips(); renderPreview();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -690,11 +799,14 @@ document.getElementById('f-typ').addEventListener('change', ()=>{ updateFormLabe
 document.getElementById('f-cancel').onclick = resetForm;
 
 function renderPreview(){
+  const typ = document.getElementById('f-typ').value;
+  const t = TYPEN[typ];
+
+  if(t.istAbo){ renderAboPreview(); return; }
+
   const preis = +document.getElementById('f-preis').value || 0;
   const jahre = +document.getElementById('f-jahre').value || 0;
-  const typ = document.getElementById('f-typ').value;
   const vergleich = +document.getElementById('f-vergleich').value || 0;
-  const t = TYPEN[typ];
 
   if(preis <= 0){
     document.getElementById('preview').innerHTML =
@@ -715,10 +827,16 @@ function renderPreview(){
 
   let ziBlock;
   if(istSpend || istWunsch){
-    ziBlock = `<div class="line neg"><span>Kostet Zukunfts-Ich</span><span>${HORIZONTE.map(j=>`−${eur(zukunft(preis,j))} (${j} J.)`).join(' · ')}</span></div>`;
+    const renditeAnteil = HORIZONTE.map(j=>`−${eur(zukunft(preis,j) - preis)} (${j} J.)`).join(' · ');
+    ziBlock = `
+      <div class="line neg"><span>Kostet Zukunfts-Ich</span><span>${HORIZONTE.map(j=>`−${eur(zukunft(preis,j))} (${j} J.)`).join(' · ')}</span></div>
+      <div class="line small neg"><span>↳ davon entgangene Rendite</span><span>${renditeAnteil}</span></div>`;
   } else {
     const label = istRetoure ? 'Zurückgeschickt – bringt Zukunfts-Ich' : 'Bringt Zukunfts-Ich';
-    ziBlock = `<div class="line pos"><span>${label}</span><span>${HORIZONTE.map(j=>`+${eur(zukunft(preis,j))} (${j} J.)`).join(' · ')}</span></div>`;
+    const renditeAnteil = HORIZONTE.map(j=>`+${eur(zukunft(preis,j) - preis)} (${j} J.)`).join(' · ');
+    ziBlock = `
+      <div class="line pos"><span>${label}</span><span>${HORIZONTE.map(j=>`+${eur(zukunft(preis,j))} (${j} J.)`).join(' · ')}</span></div>
+      <div class="line small pos"><span>↳ davon Rendite</span><span>${renditeAnteil}</span></div>`;
   }
 
   let extraBlock = '';
@@ -751,15 +869,73 @@ function renderPreview(){
     ${proMonatZeile}${ziBlock}${extraBlock}`;
 }
 
+function renderAboPreview(){
+  const monatlich = +document.getElementById('f-abo-monatlich').value || 0;
+  const zeitraum = +document.getElementById('f-abo-zeitraum').value || 0;
+  const status = currentAboStatus;
+
+  if(monatlich <= 0 || zeitraum <= 0){
+    document.getElementById('preview').innerHTML =
+      '<div class="title">👁️ Vorschau (Abo)</div><div class="muted">Monatlich & Zeitraum eingeben…</div>';
+    return;
+  }
+
+  const jahrZahlung = monatlich * 12;
+  const summe = jahrZahlung * zeitraum;
+  const endwert = rentenEndwert(jahrZahlung, zeitraum);
+  const rendite = endwert - summe;
+
+  const hMonat = monatlich / state.lohn;
+  const cls = status === 'gekuendigt' ? 'pos' : 'neg';
+  const label = status === 'gekuendigt' ? 'Abo gekündigt' : 'Abo läuft';
+  const richtung = status === 'gekuendigt' ? 'Bringt Zukunfts-Ich' : 'Kostet Zukunfts-Ich';
+  const vorz = status === 'gekuendigt' ? '+' : '−';
+
+  document.getElementById('preview').innerHTML = `
+    <div class="title">👁️ Vorschau (${label})</div>
+    <div class="big ${status === 'gekuendigt' ? '' : 'warn'}">${eur(jahrZahlung)} / Jahr</div>
+    <div class="subline">≙ ${zeitFormat(hMonat)} Arbeit / Monat (à ${state.lohn} €)</div>
+    <hr>
+    <div class="line strong"><span>Monatlich</span><span>${eur(monatlich)}</span></div>
+    <div class="line strong"><span>Zeitraum</span><span>${zeitraum} Jahre</span></div>
+    <hr>
+    <div class="line"><span>Summe Zahlungen</span><span>${eur(summe)}</span></div>
+    <div class="line ${cls}"><span>${richtung} (mit Zinseszins)</span><span>${vorz}${eur(endwert)}</span></div>
+    <div class="line small ${cls}"><span>↳ davon Rendite</span><span>${vorz}${eur(rendite)}</span></div>
+    <div class="hint">Jede Jahreszahlung (${eur(jahrZahlung)}) wird einzeln verzinst –
+    Zahlung 1 über ${zeitraum} J., Zahlung ${zeitraum} über 1 J. (Rentenformel, ${state.rendite} % p.a.)</div>`;
+}
+
 ['f-preis','f-jahre','f-vergleich'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>{ syncJahreChips(); renderPreview(); });
+});
+['f-abo-monatlich','f-abo-zeitraum'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{ syncAboZeitraumChips(); renderPreview(); });
 });
 
 document.getElementById('f-save').onclick = ()=>{
   const name = document.getElementById('f-name').value.trim() || 'Unbenannt';
+  const typ = document.getElementById('f-typ').value;
+
+  if(TYPEN[typ].istAbo){
+    const monatlich = +document.getElementById('f-abo-monatlich').value || 0;
+    const zeitraum = +document.getElementById('f-abo-zeitraum').value || 0;
+    const jahr = +document.getElementById('f-abo-jahr').value || CURRENT_YEAR;
+    if(monatlich <= 0){ alert('Bitte einen monatlichen Betrag > 0 angeben.'); return; }
+    if(zeitraum <= 0){ alert('Bitte einen Zeitraum > 0 angeben.'); return; }
+
+    if(editingId){
+      const idx = state.entscheidungen.findIndex(x=>x.id===editingId);
+      if(idx >= 0) state.entscheidungen[idx] = {...state.entscheidungen[idx], name, typ, monatlich, zeitraum, jahr, aboStatus: currentAboStatus};
+    } else {
+      state.entscheidungen.push({ id: Date.now()+Math.random(), name, typ, monatlich, zeitraum, jahr, aboStatus: currentAboStatus });
+    }
+    save(); resetForm(); renderAll();
+    return;
+  }
+
   const preis = +document.getElementById('f-preis').value || 0;
   const jahr = +document.getElementById('f-jahr').value || CURRENT_YEAR;
-  const typ = document.getElementById('f-typ').value;
   const jahre = +document.getElementById('f-jahre').value || 0;
   const vergleich = +document.getElementById('f-vergleich').value || 0;
 
@@ -786,6 +962,9 @@ document.getElementById('f-save').onclick = ()=>{
 
 function buildEntryHtml(e, showActions){
   const t = TYPEN[e.typ];
+
+  if(t.istAbo) return buildAboEntryHtml(e, showActions);
+
   const istSpend = t.klasse === 'spend';
   const istRetoure = t.klasse === 'retoure';
   const istWunsch = e.typ === 'wunsch';
@@ -802,7 +981,8 @@ function buildEntryHtml(e, showActions){
 
   let ziZeile = (istSpend || istWunsch)
     ? ''
-    : `<div class="meta">Bringt Zukunfts-Ich: <span class="pos">${HORIZONTE.map(j=>`+${eur(zukunft(e.preis,j))} (${j} J.)`).join(' · ')}</span></div>`;
+    : `<div class="meta">Bringt Zukunfts-Ich: <span class="pos">${HORIZONTE.map(j=>`+${eur(zukunft(e.preis,j))} (${j} J.)`).join(' · ')}</span></div>
+       <div class="meta" style="font-size:.78rem;">↳ davon Rendite: <span class="pos">${HORIZONTE.map(j=>`+${eur(zukunft(e.preis,j) - e.preis)} (${j} J.)`).join(' · ')}</span></div>`;
 
   let extraZeile = '';
   if(istWunsch){
@@ -853,7 +1033,59 @@ function buildEntryHtml(e, showActions){
   </div>`;
 }
 
-const SUCH_VORSCHLAEGE = ['Neukauf','Gebraucht','Gebrauchtkauf','Reparatur','Verzicht','Retoure','Wunsch'];
+function buildAboEntryHtml(e, showActions){
+  const monatlich = e.monatlich;
+  const zeitraum = e.zeitraum;
+  const jahrZahlung = monatlich * 12;
+  const summe = jahrZahlung * zeitraum;
+  const endwert = rentenEndwert(jahrZahlung, zeitraum);
+  const rendite = endwert - summe;
+
+  const istGekuendigt = e.aboStatus === 'gekuendigt';
+  const klasse = istGekuendigt ? 'abo-gekuendigt' : 'abo';
+  const badge = istGekuendigt ? 'abo-gekuendigt' : 'abo';
+  const badgeLabel = istGekuendigt ? 'Abo gekündigt' : 'Abo läuft';
+
+  const yearTag = `<span class="badge">${e.jahr || CURRENT_YEAR}</span>`;
+  const hMonat = monatlich / state.lohn;
+
+  const richtungLabel = istGekuendigt ? 'Bringt Zukunfts-Ich' : 'Kostet Zukunfts-Ich';
+  const cls = istGekuendigt ? 'pos' : 'neg';
+  const vorz = istGekuendigt ? '+' : '−';
+
+  const actions = showActions ? `<div class="actions">
+      <button class="ghost tiny" onclick="startEdit(${e.id})" aria-label="Bearbeiten">✏️</button>
+      <button class="danger tiny" onclick="delEntry(${e.id})" aria-label="Löschen">✕</button>
+    </div>` : '';
+
+  const toggleAction = showActions ? `<div class="quick-actions">
+      <button class="ghost" onclick="toggleAboStatus(${e.id})">
+        ${istGekuendigt ? '🔴 Wieder aktivieren' : '✅ Jetzt gekündigt'}
+      </button>
+    </div>` : '';
+
+  return `<div class="entry ${klasse}">
+    <div class="top">
+      <div class="main">
+        <div class="name">${escapeHtml(e.name)}<span class="badge ${badge}">${badgeLabel}</span>${yearTag}</div>
+        <div class="meta">${eur(monatlich)} / Monat · ${zeitFormat(hMonat)} Arbeit · ${zeitraum} Jahre</div>
+        <div class="meta">Jahresbetrag: <b>${eur(jahrZahlung)}</b> · Summe: ${eur(summe)}</div>
+        <div class="meta ${cls}">${richtungLabel}: ${vorz}${eur(endwert)} <span style="color:var(--muted);font-weight:400;">(↳ davon Rendite ${vorz}${eur(rendite)})</span></div>
+      </div>
+      ${actions}
+    </div>
+    ${toggleAction}
+  </div>`;
+}
+
+function toggleAboStatus(id){
+  const e = state.entscheidungen.find(x=>x.id===id);
+  if(!e || e.typ !== 'abo') return;
+  e.aboStatus = e.aboStatus === 'gekuendigt' ? 'laeuft' : 'gekuendigt';
+  save(); renderAll();
+}
+
+const SUCH_VORSCHLAEGE = ['Neukauf','Gebraucht','Gebrauchtkauf','Reparatur','Verzicht','Retoure','Wunsch','Abo'];
 
 function updateSearchSuggest(){
   const box = document.getElementById('list-search-suggest');
@@ -878,7 +1110,8 @@ function renderList(){
   const SUCH_ALIAS = { gebraucht: 'gebraucht gebrauchtkauf' };
   const filtered = q ? sorted.filter(e => {
     const t = TYPEN[e.typ];
-    return ((e.name || '') + ' ' + t.label + ' ' + (SUCH_ALIAS[e.typ] || '')).toLowerCase().includes(q);
+    const extra = e.typ === 'abo' ? 'abo abo laufend gekuendigt monatlich' : '';
+    return ((e.name || '') + ' ' + t.label + ' ' + (SUCH_ALIAS[e.typ] || '') + ' ' + extra).toLowerCase().includes(q);
   }) : sorted;
   list.innerHTML = filtered.length
     ? filtered.map(e => buildEntryHtml(e, true)).join('')
@@ -901,13 +1134,37 @@ function resolveWunsch(id, outcome){
   save(); renderAll();
 }
 
+/* ==================================================================
+   SUMMARY: Abos pro Jahr einbeziehen
+   ================================================================== */
+function aboWerteFuerJahr(jahr){
+  /* liefert { ausgaben, ersparnisse, vorteil } für ein bestimmtes Jahr */
+  let ausgaben = 0, ersparnisse = 0;
+  state.entscheidungen.forEach(e=>{
+    if(e.typ !== 'abo') return;
+    const start = +e.jahr || CURRENT_YEAR;
+    const n = +e.zeitraum || 10;
+    if(jahr >= start && jahr < start + n){
+      const jahrZahlung = e.monatlich * 12;
+      if(e.aboStatus === 'gekuendigt'){
+        ersparnisse += jahrZahlung;
+      } else {
+        ausgaben += jahrZahlung;
+      }
+    }
+  });
+  return { ausgaben, ersparnisse, vorteil: ersparnisse };
+}
+
 function renderSummary(){
   const imJahr = e => (+e.jahr || CURRENT_YEAR) === CURRENT_YEAR;
-  const aus = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='spend' && imJahr(e));
+  const aus = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='spend' && e.typ !== 'abo' && imJahr(e));
   const spa = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='save' && imJahr(e));
   const ret = state.entscheidungen.filter(e=>TYPEN[e.typ].klasse==='retoure' && imJahr(e));
   const wunsch = state.entscheidungen.filter(e=>e.typ==='wunsch' && imJahr(e));
   const ver = state.inventar.filter(it=>it.status==='verkauft' && (+it.jahr || CURRENT_YEAR) === CURRENT_YEAR);
+
+  const abosJahr = aboWerteFuerJahr(CURRENT_YEAR);
 
   const ers = aus.filter(e=>(e.typ==='reparatur' || e.typ==='gebraucht') && e.vergleich > e.preis);
   const rep = aus.filter(e=>e.typ==='reparatur' && e.vergleich > e.preis);
@@ -919,10 +1176,19 @@ function renderSummary(){
   const sumSpa = spa.reduce((a,e)=>a+e.preis,0);
   const sumRet = ret.reduce((a,e)=>a+e.preis,0);
   const sumVer = ver.reduce((a,it)=>a+(it.wert||0),0);
-  const sumGespart = sumSpa + sumErs + sumRet;
+  const sumAboErsparnis = abosJahr.ersparnisse;
+  const sumAboAusgaben = abosJahr.ausgaben;
+
+  const sumGespart = sumSpa + sumErs + sumRet + sumAboErsparnis;
   const sumGesamt = sumGespart + sumVer;
+  const sumAusGesamt = sumAus + sumAboAusgaben;
+
   const hRep = sumRep / state.lohn, hGeb = sumGeb / state.lohn;
-  const hSpa = sumSpa / state.lohn, hRet = sumRet / state.lohn, hVer = sumVer / state.lohn, hGesamt = sumGesamt / state.lohn;
+  const hSpa = sumSpa / state.lohn, hRet = sumRet / state.lohn;
+  const hVer = sumVer / state.lohn, hGesamt = sumGesamt / state.lohn;
+  const hAboErsparnis = sumAboErsparnis / state.lohn;
+  const hAboAusgaben = sumAboAusgaben / state.lohn;
+
   const anzGesamt = spa.length + ers.length + ret.length + ver.length;
 
   const salden = HORIZONTE.map(j=>({j, s: zukunft(sumGesamt, j)}));
@@ -932,16 +1198,25 @@ function renderSummary(){
       <div class="v pos">+${eur(x.s)}</div>
     </div>`).join('');
 
+  const aboZusatz = (sumAboErsparnis > 0 || sumAboAusgaben > 0) ? `
+      <div class="stat ${sumAboErsparnis > 0 ? 'save' : 'spend'}">
+        <div class="lbl">${sumAboErsparnis > 0 ? 'Abos gekündigt' : 'Abos (läuft)'}</div>
+        <div class="val">${eur(sumAboErsparnis > 0 ? sumAboErsparnis : sumAboAusgaben)}</div>
+        <div class="sub">${zeitFormat(sumAboErsparnis > 0 ? hAboErsparnis : hAboAusgaben)} / Jahr ${sumAboErsparnis > 0 ? 'gespart' : 'Kosten'}</div>
+      </div>` : '';
+
   document.getElementById('summary').innerHTML = `
     <h2>📊 Gesamt-Übersicht ${CURRENT_YEAR}</h2>
     <div class="cols">
-      <div class="stat save total"><div class="lbl">💰 Gesamtersparnis</div><div class="val">${eur(sumGesamt)}</div><div class="sub">${zeitFormat(hGesamt)} · ${cnt(anzGesamt,'Ersparnis','Ersparnisse')}</div></div>
+      <div class="stat save total"><div class="lbl">💰 Gesamt-Vorteil</div><div class="val">${eur(sumGesamt)}</div><div class="sub">${zeitFormat(hGesamt)} · ${cnt(anzGesamt,'Vorteil','Vorteile')}</div></div>
+      <div class="stat save"><div class="lbl">Ersparnis (ohne Verkauf)</div><div class="val">${eur(sumGespart)}</div><div class="sub">Verzicht + Reparatur + Retoure + Abos</div></div>
+      <div class="stat income"><div class="lbl">Erlöse (Verkäufe)</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${cnt(ver.length,'Verkauf','Verkäufe')}</div></div>
       <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${zeitFormat(hSpa)} · ${cnt(spa.length,'Verzicht','Verzichte')}</div></div>
       <div class="stat save"><div class="lbl">Reparatur</div><div class="val">${eur(sumRep)}</div><div class="sub">${zeitFormat(hRep)} · ${cnt(rep.length,'Reparatur','Reparaturen')}</div></div>
       <div class="stat save"><div class="lbl">Gebrauchtkauf</div><div class="val">${eur(sumGeb)}</div><div class="sub">${zeitFormat(hGeb)} · ${cnt(geb.length,'Gebrauchtkauf','Gebrauchtkäufe')}</div></div>
-      <div class="stat spend"><div class="lbl">Gesamtausgaben</div><div class="val">${eur(sumAus)}</div><div class="sub">${cnt(aus.length,'Ausgabe','Ausgaben')}</div></div>
+      <div class="stat spend"><div class="lbl">Gesamtausgaben</div><div class="val">${eur(sumAusGesamt)}</div><div class="sub">${cnt(aus.length,'Ausgabe','Ausgaben')}${sumAboAusgaben > 0 ? ' + Abos' : ''}</div></div>
       <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${zeitFormat(hRet)} · ${cnt(ret.length,'Retoure','Retouren')}</div></div>
-      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${cnt(ver.length,'Verkauf','Verkäufe')}</div></div>
+      ${aboZusatz}
       ${wunsch.length ? `<div class="stat warn"><div class="lbl">🕐 In Bedenkzeit</div><div class="val">${eur(wunsch.reduce((a,e)=>a+e.preis,0))}</div><div class="sub">${cnt(wunsch.length,'offener Wunsch','offene Wünsche')}</div></div>` : ''}
     </div>
     <div class="balance">
@@ -1263,25 +1538,36 @@ function renderJahre(){
     entscheidungenFilter = state.entscheidungen;
     inventarVerkauftFilter = state.inventar.filter(it => it.status === 'verkauft');
   } else {
-    entscheidungenFilter = state.entscheidungen.filter(e => (+e.jahr || CURRENT_YEAR) === currentYear);
+    entscheidungenFilter = state.entscheidungen.filter(e => {
+      if(e.typ === 'abo'){
+        const start = +e.jahr || CURRENT_YEAR;
+        const n = +e.zeitraum || 10;
+        return currentYear >= start && currentYear < start + n;
+      }
+      return (+e.jahr || CURRENT_YEAR) === currentYear;
+    });
     inventarVerkauftFilter = state.inventar.filter(it => it.status === 'verkauft' && (+it.jahr || CURRENT_YEAR) === currentYear);
   }
 
-  const aus = entscheidungenFilter.filter(e => TYPEN[e.typ].klasse === 'spend');
+  /* Abos in Ausgaben/Ersparnisse aufteilen (nur wenn Einzeljahr) */
+  const abosJahr = isGesamt ? {ausgaben:0, ersparnisse:0} : aboWerteFuerJahr(currentYear);
+
+  const aus = entscheidungenFilter.filter(e => e.typ !== 'abo' && TYPEN[e.typ].klasse === 'spend');
   const spa = entscheidungenFilter.filter(e => TYPEN[e.typ].klasse === 'save');
   const ret = entscheidungenFilter.filter(e => TYPEN[e.typ].klasse === 'retoure');
 
   const ers = aus.filter(e=>(e.typ==='reparatur' || e.typ==='gebraucht') && e.vergleich > e.preis);
   const rep = aus.filter(e=>e.typ==='reparatur' && e.vergleich > e.preis);
   const geb = aus.filter(e=>e.typ==='gebraucht' && e.vergleich > e.preis);
-  const sumAus = aus.reduce((a,e)=>a + e.preis, 0);
+  const sumAus = aus.reduce((a,e)=>a + e.preis, 0) + abosJahr.ausgaben;
   const sumRep = rep.reduce((a,e)=>a + (e.vergleich - e.preis), 0);
   const sumGeb = geb.reduce((a,e)=>a + (e.vergleich - e.preis), 0);
   const sumErs = sumRep + sumGeb;
   const sumSpa = spa.reduce((a,e)=>a+e.preis,0);
   const sumRet = ret.reduce((a,e)=>a+e.preis,0);
+  const sumAboErsparnis = abosJahr.ersparnisse;
   const sumVer = inventarVerkauftFilter.reduce((a,it)=>a+(it.wert||0),0);
-  const sumGespart = sumSpa + sumErs + sumRet;
+  const sumGespart = sumSpa + sumErs + sumRet + sumAboErsparnis;
   const sumGesamt = sumGespart + sumVer;
 
   const hRep = sumRep / state.lohn;
@@ -1289,6 +1575,7 @@ function renderJahre(){
   const hSpa = sumSpa / state.lohn;
   const hRet = sumRet / state.lohn;
   const hVer = sumVer / state.lohn;
+  const hAboErsparnis = sumAboErsparnis / state.lohn;
   const hGesamt = sumGesamt / state.lohn;
   const anzGesamt = spa.length + ers.length + ret.length + inventarVerkauftFilter.length;
 
@@ -1301,16 +1588,21 @@ function renderJahre(){
 
   const titel = isGesamt ? '📅 Gesamt (alle Jahre)' : `📅 ${currentYear}`;
 
+  const aboZusatz = sumAboErsparnis > 0 ? `
+      <div class="stat save"><div class="lbl">Abos gekündigt</div><div class="val">${eur(sumAboErsparnis)}</div><div class="sub">${zeitFormat(hAboErsparnis)} / Jahr</div></div>` : '';
+
   document.getElementById('jahre-summary').innerHTML = `
     <h2>${titel}</h2>
     <div class="cols">
-      <div class="stat save total"><div class="lbl">💰 Gesamtersparnis</div><div class="val">${eur(sumGesamt)}</div><div class="sub">${zeitFormat(hGesamt)} · ${cnt(anzGesamt,'Ersparnis','Ersparnisse')}</div></div>
+      <div class="stat save total"><div class="lbl">💰 Gesamt-Vorteil</div><div class="val">${eur(sumGesamt)}</div><div class="sub">${zeitFormat(hGesamt)} · ${cnt(anzGesamt,'Vorteil','Vorteile')}</div></div>
+      <div class="stat save"><div class="lbl">Ersparnis (ohne Verkauf)</div><div class="val">${eur(sumGespart)}</div><div class="sub">Verzicht + Reparatur + Retoure${sumAboErsparnis > 0 ? ' + Abos' : ''}</div></div>
+      <div class="stat income"><div class="lbl">Erlöse (Verkäufe)</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${cnt(inventarVerkauftFilter.length,'Verkauf','Verkäufe')}</div></div>
       <div class="stat save"><div class="lbl">Verzicht</div><div class="val">${eur(sumSpa)}</div><div class="sub">${zeitFormat(hSpa)} · ${cnt(spa.length,'Verzicht','Verzichte')}</div></div>
       <div class="stat save"><div class="lbl">Reparatur</div><div class="val">${eur(sumRep)}</div><div class="sub">${zeitFormat(hRep)} · ${cnt(rep.length,'Reparatur','Reparaturen')}</div></div>
       <div class="stat save"><div class="lbl">Gebrauchtkauf</div><div class="val">${eur(sumGeb)}</div><div class="sub">${zeitFormat(hGeb)} · ${cnt(geb.length,'Gebrauchtkauf','Gebrauchtkäufe')}</div></div>
-      <div class="stat spend"><div class="lbl">Gesamtausgaben</div><div class="val">${eur(sumAus)}</div><div class="sub">${cnt(aus.length,'Ausgabe','Ausgaben')}</div></div>
+      <div class="stat spend"><div class="lbl">Gesamtausgaben</div><div class="val">${eur(sumAus)}</div><div class="sub">${cnt(aus.length,'Ausgabe','Ausgaben')}${abosJahr.ausgaben > 0 ? ' + Abos' : ''}</div></div>
       <div class="stat retoure"><div class="lbl">Retoure</div><div class="val">${eur(sumRet)}</div><div class="sub">${zeitFormat(hRet)} · ${cnt(ret.length,'Retoure','Retouren')}</div></div>
-      <div class="stat income"><div class="lbl">Erlöse</div><div class="val">${eur(sumVer)}</div><div class="sub">${zeitFormat(hVer)} · ${cnt(inventarVerkauftFilter.length,'Verkauf','Verkäufe')}</div></div>
+      ${aboZusatz}
     </div>
     <div class="balance">
       <div class="lbl">Ersparnis-Bilanz Zukunfts-Ich</div>
@@ -1459,7 +1751,32 @@ function loadSettings(){
   document.getElementById('s-lohn').value = state.lohn;
   document.getElementById('s-tag').value = state.tag;
   document.getElementById('s-rendite').value = state.rendite;
+  updateLohnHint();
 }
+
+function updateLohnHint(){
+  const h = +document.getElementById('s-monat-h').value || 0;
+  const netto = +document.getElementById('s-netto-monat').value || 0;
+  const hint = document.getElementById('lohn-hint');
+  if(h > 0 && netto > 0){
+    const lohn = netto / h;
+    hint.textContent = `→ ${lohn.toFixed(2)} €/h  (${h} h/Monat × ${lohn.toFixed(2)} € = ${netto.toFixed(2)} €)`;
+  } else {
+    hint.textContent = '';
+  }
+}
+
+function applyLohnFromMonat(){
+  const h = +document.getElementById('s-monat-h').value || 0;
+  const netto = +document.getElementById('s-netto-monat').value || 0;
+  if(h > 0 && netto > 0){
+    const lohn = netto / h;
+    document.getElementById('s-lohn').value = lohn.toFixed(2);
+    state.lohn = lohn;
+    save(); renderAll(); renderPreview(); renderItemPreview();
+  }
+}
+
 ['s-lohn','s-tag','s-rendite'].forEach(id=>{
   document.getElementById(id).addEventListener('input', e=>{
     const v = +e.target.value;
@@ -1467,6 +1784,13 @@ function loadSettings(){
     if(id==='s-tag') state.tag = v || 1;
     if(id==='s-rendite') state.rendite = v;
     save(); renderAll(); renderPreview(); renderItemPreview();
+  });
+});
+
+['s-monat-h','s-netto-monat'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    updateLohnHint();
+    applyLohnFromMonat();
   });
 });
 
